@@ -9,8 +9,8 @@ asyncpg==0.30.0
 alembic==1.14.1
 
 # Validation
-pydantic[email]==2.10.4
-pydantic-settings==2.7.1
+pydantic[email]==2.9.2
+pydantic-settings==2.6.1
 
 # Auth / Security
 PyJWT==2.10.1
