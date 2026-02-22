@@ -20,10 +20,10 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     """Eventos de inicio y cierre de la aplicación."""
     # Startup
-    print(f"🚀 {settings.APP_NAME} iniciando en modo {settings.APP_ENV}")
+    print(f" {settings.APP_NAME} iniciando en modo {settings.APP_ENV}")
     yield
     # Shutdown
-    print(f"🛑 {settings.APP_NAME} cerrando...")
+    print(f" {settings.APP_NAME} cerrando...")
 
 
 # ── App ──────────────────────────────────────────────
