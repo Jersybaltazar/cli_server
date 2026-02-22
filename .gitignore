@@ -1,0 +1,44 @@
+# ── Python ───────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+
+# ── Virtual Environment ─────────────────────
+venv/
+.venv/
+env/
+
+# ── Environment Variables (NUNCA subir) ──────
+.env
+.env.local
+.env.production
+
+# ── Keys (NUNCA subir claves privadas) ───────
+keys/
+*.pem
+
+# ── Database ─────────────────────────────────
+*.db
+*.sqlite3
+
+# ── IDE ──────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ───────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Testing ──────────────────────────────────
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ── Docker ───────────────────────────────────
+docker-compose.override.yml

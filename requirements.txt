@@ -1,0 +1,39 @@
+# FastAPI + Server
+fastapi[standard]==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+
+# Database
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+alembic==1.14.1
+
+# Validation
+pydantic[email]==2.10.4
+pydantic-settings==2.7.1
+
+# Auth / Security
+PyJWT==2.10.1
+cryptography==44.0.0
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
+pyotp==2.9.0
+qrcode[pil]==8.0
+
+# Cache / Queue
+redis==5.2.1
+celery==5.4.0
+
+# HTTP Client
+httpx==0.28.1
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.0
+httpx==0.28.1
+
+# SMS (Twilio)
+twilio==9.4.0
+
+# Dev
+python-dotenv==1.0.1
