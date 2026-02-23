@@ -17,10 +17,6 @@ env/
 .env.local
 .env.production
 
-# ── Keys (NUNCA subir claves privadas) ───────
-keys/
-*.pem
-
 # ── Database ─────────────────────────────────
 *.db
 *.sqlite3
