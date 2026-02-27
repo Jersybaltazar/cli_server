@@ -1,0 +1,141 @@
+code,name,category,price,cost_price,duration_minutes,color
+CONS-GIN,Consulta Ginecológica,consultation,80.00,40.00,30,#3b82f6
+CONS-OBS,Consulta Obstétrica,consultation,80.00,40.00,30,#8b5cf6
+CONS-GEN,Consulta General,consultation,60.00,30.00,20,#06b6d4
+CONS-PED,Consulta Pediátrica,consultation,70.00,35.00,25,#10b981
+CONS-URO,Consulta Urológica,consultation,100.00,50.00,30,#f59e0b
+CONS-DER,Consulta Dermatológica,consultation,80.00,40.00,25,#ef4444
+CONS-NUT,Consulta Nutricional,consultation,60.00,30.00,30,#84cc16
+CONS-PSI,Consulta Psicológica,consultation,80.00,40.00,45,#d946ef
+CONS-OFT,Consulta Oftalmológica,consultation,80.00,40.00,30,#0ea5e9
+CONS-CAR,Consulta Cardiológica,consultation,100.00,50.00,30,#f43f5e
+CPN-01,Control Prenatal 1er Trimestre,cpn,80.00,40.00,40,#a855f7
+CPN-02,Control Prenatal 2do Trimestre,cpn,80.00,40.00,30,#a855f7
+CPN-03,Control Prenatal 3er Trimestre,cpn,80.00,40.00,30,#a855f7
+CPN-PPE,Control Post-parto,cpn,70.00,35.00,30,#a855f7
+CPN-LACT,Consulta de Lactancia,cpn,50.00,25.00,30,#a855f7
+ECO-OBS1,Ecografía Obstétrica 1er Trimestre,ecography,100.00,40.00,30,#22d3ee
+ECO-OBS2,Ecografía Obstétrica 2do Trimestre,ecography,100.00,40.00,30,#22d3ee
+ECO-OBS3,Ecografía Obstétrica 3er Trimestre,ecography,100.00,40.00,30,#22d3ee
+ECO-MORF,Ecografía Morfológica,ecography,200.00,80.00,45,#22d3ee
+ECO-GEN,Ecografía Genética (11-14 sem),ecography,250.00,100.00,45,#22d3ee
+ECO-4D,Ecografía 4D,ecography,180.00,70.00,40,#22d3ee
+ECO-DOP,Ecografía Doppler,ecography,200.00,80.00,40,#22d3ee
+ECO-DOPF,Ecografía Doppler Fetal,ecography,200.00,80.00,40,#22d3ee
+ECO-TVG,Ecografía Transvaginal Ginecológica,ecography,120.00,50.00,25,#22d3ee
+ECO-PEL,Ecografía Pélvica,ecography,100.00,40.00,25,#22d3ee
+ECO-MAM,Ecografía Mamaria,ecography,100.00,40.00,25,#22d3ee
+ECO-TIR,Ecografía Tiroidea,ecography,100.00,40.00,20,#22d3ee
+ECO-ABD,Ecografía Abdominal,ecography,100.00,40.00,25,#22d3ee
+ECO-REN,Ecografía Renal,ecography,100.00,40.00,20,#22d3ee
+ECO-PROS,Ecografía Prostática,ecography,120.00,50.00,25,#22d3ee
+ECO-TEST,Ecografía Testicular,ecography,100.00,40.00,20,#22d3ee
+ECO-MUS,Ecografía Musculoesquelética,ecography,120.00,50.00,25,#22d3ee
+ECO-CERV,Ecografía Cervical (cervicometría),ecography,120.00,50.00,20,#22d3ee
+ECO-BIO,Ecografía Perfil Biofísico,ecography,150.00,60.00,30,#22d3ee
+ECO-GEM,Ecografía Gemelar,ecography,200.00,80.00,45,#22d3ee
+PROC-PAP,Papanicolaou,procedure,40.00,15.00,15,#f97316
+PROC-COL,Colposcopía,procedure,120.00,50.00,30,#f97316
+PROC-BIO,Biopsia Cervical,procedure,200.00,80.00,30,#f97316
+PROC-BIOE,Biopsia Endometrial,procedure,250.00,100.00,30,#f97316
+PROC-DIU,Colocación de DIU,procedure,150.00,60.00,30,#f97316
+PROC-DIUR,Retiro de DIU,procedure,80.00,30.00,20,#f97316
+PROC-IMP,Colocación de Implante Subdérmico,procedure,150.00,60.00,30,#f97316
+PROC-IMPR,Retiro de Implante Subdérmico,procedure,100.00,40.00,20,#f97316
+PROC-CRIO,Crioterapia Cervical,procedure,200.00,80.00,30,#f97316
+PROC-ELEC,Electrocauterización,procedure,250.00,100.00,30,#f97316
+PROC-LEG,Legrado Uterino,procedure,800.00,400.00,60,#f97316
+PROC-HST,Histeroscopía Diagnóstica,procedure,600.00,300.00,45,#f97316
+PROC-LEEP,LEEP / Cono Cervical,procedure,500.00,200.00,45,#f97316
+PROC-AMNIO,Amniocentesis,procedure,800.00,400.00,45,#f97316
+PROC-MONI,Monitoreo Fetal Electrónico,procedure,80.00,30.00,30,#f97316
+PROC-NST,Non Stress Test (NST),procedure,80.00,30.00,30,#f97316
+PROC-CURA,Curación de Heridas,procedure,30.00,10.00,20,#f97316
+PROC-SUT,Sutura de Heridas,procedure,80.00,30.00,30,#f97316
+PROC-INY,Inyectable Anticonceptivo,procedure,30.00,10.00,10,#f97316
+PROC-NEBA,Nebulización,procedure,30.00,10.00,20,#f97316
+PROC-SOND,Sondaje Vesical,procedure,50.00,20.00,20,#f97316
+PROC-EKG,Electrocardiograma,procedure,50.00,20.00,15,#f97316
+PROC-CIR,Cirugía Menor,procedure,300.00,150.00,60,#f97316
+LAB-HEM,Hemograma Completo,lab_external,25.00,15.00,10,#64748b
+LAB-GLU,Glucosa en Ayunas,lab_external,15.00,8.00,10,#64748b
+LAB-ORIN,Examen Completo de Orina,lab_external,15.00,8.00,10,#64748b
+LAB-GRU,Grupo Sanguíneo + Factor Rh,lab_external,20.00,12.00,10,#64748b
+LAB-VDRL,VDRL / RPR,lab_external,20.00,12.00,10,#64748b
+LAB-VIH,Test Rápido VIH,lab_external,30.00,18.00,10,#64748b
+LAB-HEPB,HBsAg (Hepatitis B),lab_external,30.00,18.00,10,#64748b
+LAB-TORC,Perfil TORCH,lab_external,120.00,70.00,10,#64748b
+LAB-TOXO,Toxoplasma IgG/IgM,lab_external,50.00,30.00,10,#64748b
+LAB-RUBO,Rubéola IgG/IgM,lab_external,50.00,30.00,10,#64748b
+LAB-TSH,TSH (Tiroides),lab_external,35.00,20.00,10,#64748b
+LAB-T4L,T4 Libre,lab_external,35.00,20.00,10,#64748b
+LAB-CREAT,Creatinina,lab_external,15.00,8.00,10,#64748b
+LAB-UREA,Urea,lab_external,15.00,8.00,10,#64748b
+LAB-TGO,TGO (AST),lab_external,15.00,8.00,10,#64748b
+LAB-TGP,TGP (ALT),lab_external,15.00,8.00,10,#64748b
+LAB-PERF,Perfil Lipídico,lab_external,40.00,25.00,10,#64748b
+LAB-HBA1,Hemoglobina Glicosilada,lab_external,40.00,25.00,10,#64748b
+LAB-PROTOT,Proteínas Totales,lab_external,15.00,8.00,10,#64748b
+LAB-ALBU,Albúmina,lab_external,15.00,8.00,10,#64748b
+LAB-PROT24,Proteinuria 24h,lab_external,25.00,15.00,10,#64748b
+LAB-CULT,Urocultivo + Antibiograma,lab_external,40.00,25.00,10,#64748b
+LAB-SECU,Secreción Vaginal (Gram/KOH),lab_external,20.00,12.00,10,#64748b
+LAB-BHCG,Beta-hCG Cuantitativa,lab_external,35.00,20.00,10,#64748b
+LAB-PROG,Progesterona,lab_external,40.00,25.00,10,#64748b
+LAB-ESTRA,Estradiol,lab_external,40.00,25.00,10,#64748b
+LAB-FSH,FSH,lab_external,40.00,25.00,10,#64748b
+LAB-LH,LH,lab_external,40.00,25.00,10,#64748b
+LAB-PROLA,Prolactina,lab_external,40.00,25.00,10,#64748b
+LAB-TESTO,Testosterona Total,lab_external,40.00,25.00,10,#64748b
+LAB-PSA,PSA Total,lab_external,40.00,25.00,10,#64748b
+LAB-CA125,CA-125,lab_external,50.00,30.00,10,#64748b
+LAB-AFP,Alfa Fetoproteína,lab_external,50.00,30.00,10,#64748b
+LAB-FERRI,Ferritina,lab_external,30.00,18.00,10,#64748b
+LAB-HIERR,Hierro Sérico,lab_external,25.00,15.00,10,#64748b
+LAB-VITS,Vitamina D,lab_external,60.00,35.00,10,#64748b
+LAB-B12,Vitamina B12,lab_external,50.00,30.00,10,#64748b
+LAB-ACID,Ácido Úrico,lab_external,15.00,8.00,10,#64748b
+LAB-ELEC,Electrolitos (Na/K/Cl),lab_external,30.00,18.00,10,#64748b
+LAB-COAG,Perfil de Coagulación,lab_external,30.00,18.00,10,#64748b
+LAB-FIBR,Fibrinógeno,lab_external,25.00,15.00,10,#64748b
+LAB-PCR,Proteína C Reactiva,lab_external,20.00,12.00,10,#64748b
+LAB-VSG,VSG (Velocidad de Sedimentación),lab_external,15.00,8.00,10,#64748b
+LAB-ESPRM,Espermatograma,lab_external,60.00,35.00,10,#64748b
+LAB-PREN,Panel Prenatal Completo,lab_external,250.00,150.00,10,#64748b
+LAB-COOM,Test de Coombs Indirecto,lab_external,30.00,18.00,10,#64748b
+SURG-CES,Cesárea,surgery,3000.00,1500.00,120,#dc2626
+SURG-PART,Parto Normal Asistido,surgery,1500.00,750.00,120,#dc2626
+SURG-LAPS,Laparoscopía Diagnóstica,surgery,2000.00,1000.00,90,#dc2626
+SURG-LAPO,Laparoscopía Operatoria,surgery,3500.00,1800.00,120,#dc2626
+SURG-HIST,Histerectomía Vaginal,surgery,4000.00,2000.00,150,#dc2626
+SURG-HISTA,Histerectomía Abdominal,surgery,4500.00,2200.00,180,#dc2626
+SURG-MIOMC,Miomectomía,surgery,3000.00,1500.00,120,#dc2626
+SURG-OOFO,Ooforectomía,surgery,2500.00,1200.00,90,#dc2626
+SURG-QUET,Quistectomía Ovárica,surgery,2000.00,1000.00,90,#dc2626
+SURG-CERV,Conización Cervical (Quirúrgica),surgery,1500.00,750.00,60,#dc2626
+SURG-TUBL,Ligadura de Trompas,surgery,2000.00,1000.00,60,#dc2626
+SURG-CIRC,Circuncisión,surgery,1000.00,500.00,45,#dc2626
+SURG-VASE,Vasectomía,surgery,1200.00,600.00,45,#dc2626
+VAC-GRIPE,Vacuna Influenza,vaccination,50.00,25.00,10,#16a34a
+VAC-TTNO,Vacuna Antitetánica (dT),vaccination,30.00,15.00,10,#16a34a
+VAC-TDAP,Vacuna Tdap (Pertussis),vaccination,80.00,40.00,10,#16a34a
+VAC-HPV1,Vacuna VPH (Gardasil) - 1ra Dosis,vaccination,250.00,150.00,10,#16a34a
+VAC-HPV2,Vacuna VPH (Gardasil) - 2da Dosis,vaccination,250.00,150.00,10,#16a34a
+VAC-HPV3,Vacuna VPH (Gardasil) - 3ra Dosis,vaccination,250.00,150.00,10,#16a34a
+VAC-HEPB1,Vacuna Hepatitis B - 1ra Dosis,vaccination,50.00,25.00,10,#16a34a
+VAC-HEPB2,Vacuna Hepatitis B - 2da Dosis,vaccination,50.00,25.00,10,#16a34a
+VAC-HEPB3,Vacuna Hepatitis B - 3ra Dosis,vaccination,50.00,25.00,10,#16a34a
+VAC-COVID,Vacuna COVID-19,vaccination,0.00,0.00,15,#16a34a
+VAC-NEUM,Vacuna Neumococo,vaccination,80.00,40.00,10,#16a34a
+VAC-ROTA,Vacuna Rotavirus,vaccination,100.00,50.00,10,#16a34a
+VAC-PENTA,Vacuna Pentavalente,vaccination,0.00,0.00,10,#16a34a
+OTH-CERT,Certificado Médico,other,30.00,0.00,15,#94a3b8
+OTH-CERTE,Certificado de Embarazo,other,30.00,0.00,15,#94a3b8
+OTH-REPOM,Informe / Reporte Médico,other,50.00,0.00,20,#94a3b8
+OTH-DESCP,Descanso Pre-natal,other,30.00,0.00,15,#94a3b8
+OTH-DESCPO,Descanso Post-natal,other,30.00,0.00,15,#94a3b8
+OTH-PSIC,Evaluación Psicoprofiláctica,other,60.00,30.00,45,#94a3b8
+OTH-PLAN,Consejería Planificación Familiar,other,40.00,20.00,30,#94a3b8
+OTH-ITS,Consejería ITS/VIH,other,40.00,20.00,30,#94a3b8
+OTH-NUTR,Consejería Nutricional Prenatal,other,50.00,25.00,30,#94a3b8
+OTH-TRIAJE,Triaje,other,10.00,0.00,10,#94a3b8

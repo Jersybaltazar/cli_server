@@ -72,6 +72,13 @@ class AppointmentDoctorEmbed(BaseModel):
     cmp_number: str | None = None
 
 
+class AppointmentBookerEmbed(BaseModel):
+    """Datos del usuario que agendó la cita."""
+    id: UUID
+    first_name: str
+    last_name: str
+
+
 class AppointmentResponse(BaseModel):
     id: UUID
     clinic_id: UUID
@@ -82,8 +89,10 @@ class AppointmentResponse(BaseModel):
     status: AppointmentStatus
     service_type: str
     notes: str | None = None
+    booked_by: UUID | None = None
     cancellation_reason: str | None = None
     cancelled_by: UUID | None = None
+    reminder_sent_at: datetime | None = None
 
     # Datos de relaciones
     patient_name: str | None = None
@@ -91,6 +100,7 @@ class AppointmentResponse(BaseModel):
     clinic_name: str | None = None
     patient: AppointmentPatientEmbed | None = None
     doctor: AppointmentDoctorEmbed | None = None
+    booker: AppointmentBookerEmbed | None = None
 
     created_at: datetime
     updated_at: datetime

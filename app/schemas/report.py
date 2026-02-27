@@ -78,7 +78,69 @@ class AppointmentStatsResponse(BaseModel):
     no_show_rate: float = Field(0.0, description="Tasa de no-show (%)")
 
 
+# ── Producción Médica ──────────────────────────────
+
+
+class DoctorProductionItem(BaseModel):
+    """Producción de un doctor en un período."""
+    doctor_id: UUID
+    doctor_name: str
+    total_appointments: int = 0
+    completed_appointments: int = 0
+    total_revenue: Decimal = Decimal("0.00")
+    services_breakdown: list[dict] = []
+
+
+class DoctorProductionReport(BaseModel):
+    date_from: date
+    date_to: date
+    doctors: list[DoctorProductionItem]
+    grand_total_appointments: int = 0
+    grand_total_revenue: Decimal = Decimal("0.00")
+
+
+# ── Turnos Mensuales ──────────────────────────────
+
+
+class DoctorShiftCount(BaseModel):
+    doctor_id: UUID
+    doctor_name: str
+    total_shifts: int = 0
+
+
+class DoctorShiftCountReport(BaseModel):
+    year: int
+    month: int
+    doctors: list[DoctorShiftCount]
+
+
+# ── Dashboard Comparativo por Sede ─────────────────
+
+
+class ClinicComparison(BaseModel):
+    """Datos de una sede para comparación."""
+    clinic_id: UUID
+    clinic_name: str
+    branch_name: str | None = None
+    total_appointments: int = 0
+    completed_appointments: int = 0
+    total_patients: int = 0
+    new_patients: int = 0
+    revenue: Decimal = Decimal("0.00")
+    invoice_count: int = 0
+    no_show_rate: float = 0.0
+
+
+class ComparativeDashboardResponse(BaseModel):
+    """Dashboard comparativo entre sedes de una organización."""
+    date_from: date
+    date_to: date
+    clinics: list[ClinicComparison]
+    totals: ClinicComparison | None = None
+
+
 # ── Audit Log ───────────────────────────────────────
+
 
 class AuditLogItem(BaseModel):
     """Un registro individual del audit log."""

@@ -34,7 +34,7 @@ def _get_client_ip(request: Request) -> str | None:
 async def create_prenatal_visit(
     data: PrenatalVisitCreate,
     request: Request,
-    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.DOCTOR)),
+    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA)),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -50,7 +50,7 @@ async def create_prenatal_visit(
 async def get_prenatal_visit(
     visit_id: UUID,
     user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR
+        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA
     )),
     db: AsyncSession = Depends(get_db),
 ):
@@ -64,7 +64,7 @@ async def get_prenatal_visit(
 async def get_prenatal_history(
     patient_id: UUID,
     user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR
+        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA
     )),
     db: AsyncSession = Depends(get_db),
 ):

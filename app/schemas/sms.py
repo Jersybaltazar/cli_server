@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 class SmsConfigResponse(BaseModel):
     """Configuración de SMS de la clínica."""
     enabled: bool = False
+    preferred_channel: str = Field("sms", description="sms | whatsapp | both")
     reminder_hours_before: int = Field(24, ge=1, le=72)
     reminder_frequency: str = Field("once", description="once | twice")
     second_reminder_hours: int | None = Field(None, ge=1, le=24)
@@ -39,6 +40,7 @@ class SmsConfigResponse(BaseModel):
 class SmsConfigUpdate(BaseModel):
     """Actualización de configuración SMS."""
     enabled: bool | None = None
+    preferred_channel: str | None = Field(None, description="sms | whatsapp | both")
     reminder_hours_before: int | None = Field(None, ge=1, le=72)
     reminder_frequency: str | None = Field(None, description="once | twice")
     second_reminder_hours: int | None = Field(None, ge=1, le=24)
@@ -58,13 +60,14 @@ class SmsPatientEmbed(BaseModel):
 
 
 class SmsMessageResponse(BaseModel):
-    """Un mensaje SMS del historial."""
+    """Un mensaje SMS/WhatsApp del historial."""
     id: UUID
     patient_id: UUID | None = None
     phone: str
     message: str
     sms_type: str
     status: str
+    channel: str = "sms"
     sent_at: datetime
     error_message: str | None = None
     patient: SmsPatientEmbed | None = None

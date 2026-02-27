@@ -72,6 +72,11 @@ class Patient(Base):
         String(1000), comment="Notas adicionales del paciente"
     )
 
+    # ── Datos obstétricos ─────────────────────────────
+    fur: Mapped[date | None] = mapped_column(
+        Date, comment="Fecha de Última Regla (FUR) para cálculo de semanas gestacionales"
+    )
+
     # ── Estado ───────────────────────────────────────
     is_active: Mapped[bool] = mapped_column(default=True)
 
@@ -98,6 +103,15 @@ class Patient(Base):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
+
+    @property
+    def gestational_weeks(self) -> float | None:
+        """Calcula semanas gestacionales desde la FUR."""
+        if self.fur is None:
+            return None
+        delta = date.today() - self.fur
+        weeks = round(delta.days / 7, 1)
+        return weeks if weeks >= 0 else None
 
     def __repr__(self) -> str:
         return f"<Patient {self.first_name} {self.last_name}>"

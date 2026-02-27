@@ -102,7 +102,7 @@ async def _get_public_doctors(
     result = await db.execute(
         select(User).where(
             User.clinic_id == clinic_id,
-            User.role == UserRole.DOCTOR,
+            User.role.in_([UserRole.DOCTOR, UserRole.OBSTETRA]),
             User.is_active.is_(True),
         )
     )
@@ -230,7 +230,7 @@ async def public_book_appointment(
         select(User).where(
             User.id == data.doctor_id,
             User.clinic_id == clinic_id,
-            User.role == UserRole.DOCTOR,
+            User.role.in_([UserRole.DOCTOR, UserRole.OBSTETRA]),
             User.is_active.is_(True),
         )
     )

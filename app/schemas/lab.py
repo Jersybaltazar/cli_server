@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 from pydantic import BaseModel, Field
 
-from app.models.lab_order import LabOrderStatus, LabStudyType
+from app.models.lab_order import DeliveryChannel, LabOrderStatus, LabStudyType
 
 # ── Lab Order Schemas ──────────────────────────────────────────
 
@@ -16,6 +16,7 @@ class LabOrderCreate(LabOrderBase):
     patient_id: UUID
     doctor_id: UUID | None = None  # Si es None, se usa el current_user
     appointment_id: UUID | None = None
+    cassette_count: int | None = None
 
 class LabOrderUpdate(BaseModel):
     status: LabOrderStatus | None = None
@@ -26,6 +27,9 @@ class LabOrderUpdate(BaseModel):
     external_lab_code: str | None = Field(None, max_length=50)
     result_received_at: datetime | None = None
     delivered_at: datetime | None = None
+    delivery_channel: DeliveryChannel | None = None
+    delivered_by: UUID | None = None
+    cassette_count: int | None = None
     notes: str | None = None
 
 class LabOrderResponse(LabOrderBase):
@@ -44,7 +48,11 @@ class LabOrderResponse(LabOrderBase):
     external_lab_code: str | None
     result_received_at: datetime | None
     delivered_at: datetime | None
-    
+    delivery_channel: DeliveryChannel | None = None
+    delivered_by: UUID | None = None
+    lab_code: str | None = None
+    cassette_count: int | None = None
+
     created_at: datetime
     updated_at: datetime
 
@@ -59,7 +67,7 @@ class LabResultBase(BaseModel):
     attachments: list[dict] = Field(default_factory=list)
 
 class LabResultCreate(LabResultBase):
-    lab_order_id: UUID
+    lab_order_id: UUID | None = None  # Se setea desde el path parameter si no se envía
     # medical_record_id se puede setear internamente si se crea automáticamente
 
 class LabResultResponse(LabResultBase):

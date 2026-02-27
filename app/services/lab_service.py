@@ -7,23 +7,79 @@ from sqlalchemy.orm import selectinload
 
 from app.models.lab_order import LabOrder, LabOrderStatus, LabStudyType
 from app.models.lab_result import LabResult
+from app.models.lab_sequence import LabSequence
 from app.models.user import User
 from app.schemas.lab import LabOrderCreate, LabOrderUpdate, LabResultCreate, LabDashboardStats
 from app.core.exceptions import NotFoundException, ConflictException
 
+
+# ── Generación de códigos secuenciales ──────────────────
+
+_SEQUENCE_MAP = {
+    LabStudyType.PATHOLOGY: ("pathology", "M"),
+    LabStudyType.CYTOLOGY: ("cytology", "C"),
+}
+
+
+async def _generate_lab_code(
+    db: AsyncSession, clinic_id: UUID, study_type: LabStudyType
+) -> str | None:
+    """
+    Genera código secuencial M26-01, C26-01 etc.
+    Usa SELECT FOR UPDATE para evitar duplicados en concurrencia.
+    Retorna None si el tipo de estudio no requiere código.
+    """
+    mapping = _SEQUENCE_MAP.get(study_type)
+    if not mapping:
+        return None
+
+    seq_type, prefix = mapping
+    year = datetime.now().year
+    year_short = year % 100  # 2026 → 26
+
+    # Buscar o crear secuencia con lock
+    result = await db.execute(
+        select(LabSequence)
+        .where(
+            LabSequence.clinic_id == clinic_id,
+            LabSequence.sequence_type == seq_type,
+            LabSequence.year == year,
+        )
+        .with_for_update()
+    )
+    seq = result.scalar_one_or_none()
+
+    if not seq:
+        seq = LabSequence(
+            clinic_id=clinic_id,
+            sequence_type=seq_type,
+            year=year,
+            last_number=0,
+        )
+        db.add(seq)
+        await db.flush()
+
+    seq.last_number += 1
+    return f"{prefix}{year_short}-{seq.last_number:02d}"
+
+
 async def create_order(
-    db: AsyncSession, 
-    clinic_id: UUID, 
-    user_id: UUID, 
+    db: AsyncSession,
+    clinic_id: UUID,
+    user_id: UUID,
     data: LabOrderCreate
 ) -> LabOrder:
     """Crea una nueva orden de laboratorio."""
+    # Generar código secuencial si es patología o citología
+    lab_code = await _generate_lab_code(db, clinic_id, data.study_type)
+
     order = LabOrder(
         **data.model_dump(exclude={"doctor_id"}),
         clinic_id=clinic_id,
         doctor_id=data.doctor_id or user_id,
         status=LabOrderStatus.ORDERED,
-        ordered_at=func.now()
+        ordered_at=func.now(),
+        lab_code=lab_code,
     )
     db.add(order)
     await db.commit()
@@ -123,6 +179,8 @@ async def update_order(
             order.result_received_at = update_data.get("result_received_at", func.now())
         elif new_status == LabOrderStatus.DELIVERED:
             order.delivered_at = update_data.get("delivered_at", func.now())
+            if "delivered_by" not in update_data:
+                order.delivered_by = user_id
 
     for key, value in update_data.items():
         setattr(order, key, value)
@@ -144,9 +202,10 @@ async def register_result(
     if order.status == LabOrderStatus.CANCELLED:
         raise ConflictException("No se puede registrar resultado en una orden cancelada")
 
-    # Crear el resultado
+    # Crear el resultado (lab_order_id viene del path, no del body)
     result_obj = LabResult(
-        **data.model_dump(),
+        **data.model_dump(exclude={"lab_order_id"}),
+        lab_order_id=order_id,
         clinic_id=clinic_id,
         recorded_by=user_id,
         recorded_at=func.now()

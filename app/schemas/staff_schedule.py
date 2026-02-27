@@ -73,6 +73,49 @@ class StaffScheduleOverrideResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# ── StaffSchedule CRUD ─────────────────────────────────
+
+class StaffScheduleCreate(BaseModel):
+    """Input para crear un turno recurrente de personal no-médico."""
+    user_id: UUID
+    day_of_week: int = Field(..., ge=0, le=6)
+    start_time: time
+    end_time: time
+    shift_label: str | None = Field(None, max_length=50)
+
+    @field_validator("end_time")
+    @classmethod
+    def end_after_start_time(cls, v: time, info) -> time:
+        start = info.data.get("start_time")
+        if start and v <= start:
+            raise ValueError("end_time debe ser posterior a start_time")
+        return v
+
+
+class StaffScheduleUpdate(BaseModel):
+    """Input para actualizar un turno recurrente."""
+    start_time: time | None = None
+    end_time: time | None = None
+    shift_label: str | None = None
+    is_active: bool | None = None
+
+
+class StaffScheduleResponse(BaseModel):
+    """Respuesta de un turno recurrente de personal."""
+    id: UUID
+    clinic_id: UUID
+    user_id: UUID
+    day_of_week: int
+    start_time: time
+    end_time: time
+    shift_label: str | None = None
+    is_active: bool
+    user_name: str | None = None
+    user_role: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
 # ── Vistas consolidadas del staff ────────────────────
 
 class StaffMember(BaseModel):

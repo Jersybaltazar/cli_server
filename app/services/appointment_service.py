@@ -26,6 +26,7 @@ from app.models.patient import Patient
 from app.models.user import User
 from app.core.security import decrypt_pii
 from app.schemas.appointment import (
+    AppointmentBookerEmbed,
     AppointmentCreate,
     AppointmentDoctorEmbed,
     AppointmentListResponse,
@@ -84,6 +85,14 @@ def _appointment_to_response(appt: Appointment) -> AppointmentResponse:
     if hasattr(appt, "clinic") and appt.clinic:
         clinic_name = appt.clinic.display_name
 
+    booker_embed = None
+    if hasattr(appt, "booker") and appt.booker:
+        booker_embed = AppointmentBookerEmbed(
+            id=appt.booker.id,
+            first_name=appt.booker.first_name,
+            last_name=appt.booker.last_name,
+        )
+
     return AppointmentResponse(
         id=appt.id,
         clinic_id=appt.clinic_id,
@@ -94,6 +103,7 @@ def _appointment_to_response(appt: Appointment) -> AppointmentResponse:
         status=appt.status,
         service_type=appt.service_type,
         notes=appt.notes,
+        booked_by=appt.booked_by,
         cancellation_reason=appt.cancellation_reason,
         cancelled_by=appt.cancelled_by,
         patient_name=patient_name,
@@ -101,6 +111,7 @@ def _appointment_to_response(appt: Appointment) -> AppointmentResponse:
         clinic_name=clinic_name,
         patient=patient_embed,
         doctor=doctor_embed,
+        booker=booker_embed,
         created_at=appt.created_at,
         updated_at=appt.updated_at,
     )
@@ -112,6 +123,7 @@ def _load_options():
         joinedload(Appointment.patient),
         joinedload(Appointment.doctor),
         joinedload(Appointment.clinic),
+        joinedload(Appointment.booker),
     ]
 
 
@@ -205,6 +217,7 @@ async def create_appointment(
         status=AppointmentStatus.SCHEDULED,
         service_type=data.service_type,
         notes=data.notes,
+        booked_by=user.id,
     )
     db.add(appointment)
     await db.flush()
@@ -463,6 +476,11 @@ async def change_status(
         ip_address=ip_address,
     )
 
+    # Hooks al completar cita
+    if data.status == AppointmentStatus.COMPLETED:
+        await _generate_commission_on_complete(db, appointment)
+        await _auto_deduct_supplies_on_complete(db, appointment, user.id)
+
     # Recargar con relaciones
     result = await db.execute(
         select(Appointment)
@@ -472,6 +490,61 @@ async def change_status(
     appointment = result.scalar_one()
 
     return _appointment_to_response(appointment)
+
+
+async def _generate_commission_on_complete(
+    db: AsyncSession, appointment: Appointment
+) -> None:
+    """Busca el servicio por nombre y genera comisión si existe regla."""
+    from app.models.service import Service
+    from app.services.commission_service import generate_commission_entry
+
+    # Buscar servicio por nombre (service_type)
+    svc_result = await db.execute(
+        select(Service).where(
+            Service.clinic_id == appointment.clinic_id,
+            Service.name == appointment.service_type,
+        )
+    )
+    service = svc_result.scalar_one_or_none()
+    if not service:
+        return  # Sin servicio vinculado, no se genera comisión
+
+    await generate_commission_entry(
+        db,
+        clinic_id=appointment.clinic_id,
+        doctor_id=appointment.doctor_id,
+        appointment_id=appointment.id,
+        service_id=service.id,
+        patient_id=appointment.patient_id,
+        service_amount=service.price,
+    )
+
+
+async def _auto_deduct_supplies_on_complete(
+    db: AsyncSession, appointment: Appointment, user_id
+) -> None:
+    """Auto-descuenta insumos vinculados al servicio de la cita."""
+    from app.models.service import Service
+    from app.services.procedure_supply_service import auto_deduct_supplies
+
+    svc_result = await db.execute(
+        select(Service).where(
+            Service.clinic_id == appointment.clinic_id,
+            Service.name == appointment.service_type,
+        )
+    )
+    service = svc_result.scalar_one_or_none()
+    if not service:
+        return
+
+    await auto_deduct_supplies(
+        db,
+        clinic_id=appointment.clinic_id,
+        service_id=service.id,
+        appointment_id=appointment.id,
+        user_id=user_id,
+    )
 
 
 # ── Citas cross-sede del paciente ────────────────────

@@ -357,7 +357,7 @@ async def retry_emit(
         )
         .where(Invoice.id == invoice_id, Invoice.clinic_id == user.clinic_id)
     )
-    invoice = result.scalar_one_or_none()
+    invoice = result.unique().scalar_one_or_none()
 
     if not invoice:
         raise NotFoundException("Comprobante")
@@ -391,7 +391,7 @@ async def void_invoice(
         )
         .where(Invoice.id == invoice_id, Invoice.clinic_id == user.clinic_id)
     )
-    invoice = result.scalar_one_or_none()
+    invoice = result.unique().scalar_one_or_none()
 
     if not invoice:
         raise NotFoundException("Comprobante")
@@ -552,7 +552,7 @@ async def get_invoice(
         )
         .where(Invoice.id == invoice_id, Invoice.clinic_id == clinic_id)
     )
-    invoice = result.scalar_one_or_none()
+    invoice = result.unique().scalar_one_or_none()
 
     if not invoice:
         raise NotFoundException("Comprobante")

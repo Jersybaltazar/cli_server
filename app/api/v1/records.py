@@ -37,7 +37,7 @@ def _get_client_ip(request: Request) -> str | None:
 async def create_record(
     data: MedicalRecordCreate,
     request: Request,
-    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.DOCTOR)),
+    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA)),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -56,7 +56,7 @@ async def list_patient_records(
     size: int = Query(20, ge=1, le=100),
     record_type: RecordType | None = Query(None, description="Filtrar por tipo"),
     user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR
+        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA
     )),
     db: AsyncSession = Depends(get_db),
 ):
@@ -78,7 +78,7 @@ async def list_patient_records(
 async def get_record(
     record_id: UUID,
     user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR
+        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA
     )),
     db: AsyncSession = Depends(get_db),
 ):
@@ -93,7 +93,7 @@ async def sign_record(
     record_id: UUID,
     data: SignRecordRequest,
     request: Request,
-    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.DOCTOR)),
+    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA)),
     db: AsyncSession = Depends(get_db),
 ):
     """

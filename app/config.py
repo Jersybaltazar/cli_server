@@ -56,10 +56,11 @@ class Settings(BaseSettings):
     NUBEFACT_API_URL: str = "https://api.nubefact.com/api/v1"
     NUBEFACT_API_TOKEN: str = "your-nubefact-token"
 
-    # ── Twilio SMS ───────────────────────────────────
+    # ── Twilio SMS / WhatsApp ──────────────────────────
     TWILIO_ACCOUNT_SID: str = "your-twilio-account-sid"
     TWILIO_AUTH_TOKEN: str = "your-twilio-auth-token"
     TWILIO_PHONE_NUMBER: str = "+15005550006"
+    TWILIO_WHATSAPP_NUMBER: str = "+14155238886"
 
     # ── json.pe (Consultas DNI / RUC) ────────────────
     JSONPE_API_URL: str = "https://api.json.pe/api"

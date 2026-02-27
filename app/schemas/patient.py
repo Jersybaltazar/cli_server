@@ -33,6 +33,7 @@ class PatientBase(BaseModel):
     emergency_contact_name: str | None = Field(None, max_length=200)
     emergency_contact_phone: str | None = Field(None, max_length=20)
     notes: str | None = Field(None, max_length=1000)
+    fur: date | None = Field(None, description="Fecha de Última Regla (FUR)")
 
     @field_validator("dni")
     @classmethod
@@ -61,6 +62,7 @@ class PatientUpdate(BaseModel):
     emergency_contact_name: str | None = None
     emergency_contact_phone: str | None = None
     notes: str | None = None
+    fur: date | None = None
     is_active: bool | None = None
 
 
@@ -89,6 +91,8 @@ class PatientResponse(BaseModel):
     emergency_contact_name: str | None = None
     emergency_contact_phone: str | None = None
     notes: str | None = None
+    fur: date | None = None
+    gestational_weeks: float | None = None
     is_active: bool
     registered_sedes: list[PatientClinicInfo] | None = None
     created_at: datetime

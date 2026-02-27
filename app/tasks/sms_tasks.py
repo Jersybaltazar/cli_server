@@ -1,5 +1,5 @@
 """
-Tareas Celery para envío de SMS vía Twilio.
+Tareas Celery para envío de SMS/WhatsApp vía Twilio.
 Recordatorios automáticos y notificaciones.
 Registra cada mensaje en sms_messages para historial.
 """
@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
     default_retry_delay=30,
     name="sms.send_reminder",
 )
-def send_appointment_reminder_task(self, appointment_id: str):
-    """Envía un recordatorio de cita por SMS."""
+def send_appointment_reminder_task(self, appointment_id: str, channel: str = "whatsapp"):
+    """Envía un recordatorio de cita por WhatsApp (o SMS como fallback)."""
     from uuid import UUID
 
     async def _send():
@@ -31,7 +31,7 @@ def send_appointment_reminder_task(self, appointment_id: str):
             SMSError,
             build_appointment_reminder,
             log_sms,
-            send_sms,
+            send_message,
         )
         from sqlalchemy import select
         from sqlalchemy.orm import joinedload
@@ -56,6 +56,11 @@ def send_appointment_reminder_task(self, appointment_id: str):
                 logger.info(f"Appointment {appointment_id} cancelado/no-show, no enviar")
                 return
 
+            # Evitar envío duplicado
+            if appt.reminder_sent_at is not None:
+                logger.info(f"Appointment {appointment_id} ya tiene reminder enviado")
+                return
+
             # Obtener teléfono del paciente (descifrando PII)
             phone = decrypt_pii(appt.patient.phone) if appt.patient.phone else None
             if not phone:
@@ -71,8 +76,9 @@ def send_appointment_reminder_task(self, appointment_id: str):
             )
 
             try:
-                sms_result = await send_sms(phone, message)
-                status = "simulated" if sms_result.get("status") == "simulated" else "sent"
+                msg_result = await send_message(phone, message, channel=channel)
+                status = "simulated" if msg_result.get("status") == "simulated" else "sent"
+                used_channel = msg_result.get("channel", channel)
 
                 await log_sms(
                     db,
@@ -82,10 +88,17 @@ def send_appointment_reminder_task(self, appointment_id: str):
                     message=message,
                     sms_type="reminder",
                     status=status,
-                    twilio_sid=sms_result.get("sid"),
+                    channel=used_channel,
+                    twilio_sid=msg_result.get("sid"),
                 )
+
+                # Marcar reminder como enviado
+                appt.reminder_sent_at = datetime.now(timezone.utc)
+
                 await db.commit()
-                logger.info(f"SMS reminder enviado para cita {appointment_id}")
+                logger.info(
+                    f"Reminder ({used_channel}) enviado para cita {appointment_id}"
+                )
 
             except SMSError as e:
                 await log_sms(
@@ -96,16 +109,17 @@ def send_appointment_reminder_task(self, appointment_id: str):
                     message=message,
                     sms_type="reminder",
                     status="failed",
+                    channel=channel,
                     error_message=e.message,
                 )
                 await db.commit()
-                logger.error(f"Error enviando SMS reminder: {e.message}")
+                logger.error(f"Error enviando reminder: {e.message}")
                 raise
 
     try:
         asyncio.run(_send())
     except Exception as exc:
-        logger.error(f"Error en SMS reminder task: {exc}")
+        logger.error(f"Error en reminder task: {exc}")
         raise self.retry(exc=exc)
 
 
@@ -114,6 +128,7 @@ def send_daily_reminders():
     """
     Task periódico (cron): envía recordatorios para citas de mañana.
     Programar con Celery Beat para ejecutarse diariamente a las 18:00.
+    Usa WhatsApp con fallback automático a SMS.
     """
     async def _process():
         from app.database import async_session_factory
@@ -133,14 +148,16 @@ def send_daily_reminders():
                         AppointmentStatus.SCHEDULED,
                         AppointmentStatus.CONFIRMED,
                     ]),
+                    # Solo citas sin reminder enviado
+                    Appointment.reminder_sent_at.is_(None),
                 )
             )
             appointment_ids = [str(row[0]) for row in result.all()]
 
         for appt_id in appointment_ids:
-            send_appointment_reminder_task.delay(appt_id)
+            send_appointment_reminder_task.delay(appt_id, channel="whatsapp")
 
-        logger.info(f"Encolados {len(appointment_ids)} SMS reminders para mañana")
+        logger.info(f"Encolados {len(appointment_ids)} reminders para mañana")
 
     asyncio.run(_process())
 
@@ -151,8 +168,8 @@ def send_daily_reminders():
     default_retry_delay=30,
     name="sms.send_invoice_notification",
 )
-def send_invoice_notification_task(self, invoice_id: str):
-    """Envía notificación de comprobante emitido por SMS."""
+def send_invoice_notification_task(self, invoice_id: str, channel: str = "whatsapp"):
+    """Envía notificación de comprobante emitido por WhatsApp/SMS."""
     from uuid import UUID
 
     async def _send():
@@ -163,7 +180,7 @@ def send_invoice_notification_task(self, invoice_id: str):
             SMSError,
             build_invoice_notification,
             log_sms,
-            send_sms,
+            send_message,
         )
         from sqlalchemy import select
         from sqlalchemy.orm import joinedload
@@ -195,8 +212,9 @@ def send_invoice_notification_task(self, invoice_id: str):
             )
 
             try:
-                sms_result = await send_sms(phone, message)
-                status = "simulated" if sms_result.get("status") == "simulated" else "sent"
+                msg_result = await send_message(phone, message, channel=channel)
+                status = "simulated" if msg_result.get("status") == "simulated" else "sent"
+                used_channel = msg_result.get("channel", channel)
 
                 await log_sms(
                     db,
@@ -206,10 +224,11 @@ def send_invoice_notification_task(self, invoice_id: str):
                     message=message,
                     sms_type="invoice",
                     status=status,
-                    twilio_sid=sms_result.get("sid"),
+                    channel=used_channel,
+                    twilio_sid=msg_result.get("sid"),
                 )
                 await db.commit()
-                logger.info(f"SMS notificación factura {invoice_id} enviada")
+                logger.info(f"Notificación factura {invoice_id} enviada ({used_channel})")
 
             except SMSError as e:
                 await log_sms(
@@ -220,10 +239,11 @@ def send_invoice_notification_task(self, invoice_id: str):
                     message=message,
                     sms_type="invoice",
                     status="failed",
+                    channel=channel,
                     error_message=e.message,
                 )
                 await db.commit()
-                logger.error(f"Error enviando SMS factura: {e.message}")
+                logger.error(f"Error enviando notificación factura: {e.message}")
                 raise
 
     try:

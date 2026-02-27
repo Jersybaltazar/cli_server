@@ -6,7 +6,7 @@ GET/PUT config, historial de mensajes, envío de prueba.
 import math
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -14,7 +14,7 @@ from app.auth.dependencies import require_role
 from app.core.exceptions import NotFoundException
 from app.database import get_db
 from app.models.clinic import Clinic
-from app.models.sms_message import SmsMessage, SmsStatus, SmsType
+from app.models.sms_message import MessageChannel, SmsMessage, SmsStatus, SmsType
 from app.models.user import User, UserRole
 from app.schemas.sms import (
     SmsConfigResponse,
@@ -98,11 +98,15 @@ async def update_sms_config(
 async def get_sms_messages(
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
-    user: User = Depends(require_role(*_ADMIN_ROLES, UserRole.DOCTOR)),
+    channel: str | None = Query(None, description="Filtrar por canal: sms | whatsapp"),
+    user: User = Depends(require_role(*_ADMIN_ROLES, UserRole.DOCTOR, UserRole.OBSTETRA)),
     db: AsyncSession = Depends(get_db),
 ):
-    """Historial de mensajes SMS enviados por la clínica."""
-    base_filter = SmsMessage.clinic_id == user.clinic_id
+    """Historial de mensajes SMS/WhatsApp enviados por la clínica."""
+    filters = [SmsMessage.clinic_id == user.clinic_id]
+    if channel:
+        filters.append(SmsMessage.channel == MessageChannel(channel))
+    base_filter = filters[0] if len(filters) == 1 else and_(*filters)
 
     # Count total
     count_result = await db.execute(
@@ -138,6 +142,7 @@ async def get_sms_messages(
             message=msg.message,
             sms_type=msg.sms_type.value,
             status=msg.status.value,
+            channel=msg.channel.value if msg.channel else "sms",
             sent_at=msg.sent_at,
             error_message=msg.error_message,
             patient=patient_embed,

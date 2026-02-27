@@ -100,6 +100,18 @@ class Appointment(Base):
     )
     notes: Mapped[str | None] = mapped_column(Text)
 
+    # ── Metadata de creación ─────────────────────────
+    booked_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"),
+        comment="Usuario que creó/agendó la cita"
+    )
+
+    # ── Recordatorios ────────────────────────────────
+    reminder_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        comment="Fecha/hora en que se envió el recordatorio"
+    )
+
     # ── Metadata de cancelación ──────────────────────
     cancellation_reason: Mapped[str | None] = mapped_column(String(500))
     cancelled_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
@@ -116,6 +128,7 @@ class Appointment(Base):
     clinic: Mapped["Clinic"] = relationship("Clinic")  # noqa: F821
     patient: Mapped["Patient"] = relationship("Patient")  # noqa: F821
     doctor: Mapped["User"] = relationship("User", foreign_keys=[doctor_id])  # noqa: F821
+    booker: Mapped["User"] = relationship("User", foreign_keys=[booked_by])  # noqa: F821
 
     # ── Índices para consultas frecuentes ────────────
     __table_args__ = (

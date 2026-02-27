@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, Text, func
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, SmallInteger, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -26,6 +26,14 @@ class LabStudyType(str, enum.Enum):
     IMAGING = "imaging"           # Ecografías
     OTHER = "other"
 
+class DeliveryChannel(str, enum.Enum):
+    """Canal de entrega de resultados al paciente."""
+    WHATSAPP = "whatsapp"
+    PRINTED = "printed"
+    IN_PERSON = "in_person"
+    EMAIL = "email"
+    NOT_DELIVERED = "not_delivered"
+
 class LabOrder(Base):
     """
     Representa una orden de laboratorio o patología.
@@ -42,6 +50,18 @@ class LabOrder(Base):
     # Tipo y descripción
     study_type: Mapped[LabStudyType] = mapped_column(Enum(LabStudyType), index=True)
     study_name: Mapped[str] = mapped_column(String(200)) # "PAP Convencional", etc.
+
+    # Código secuencial (M26-01, C26-01) — solo patología/citología
+    lab_code: Mapped[str | None] = mapped_column(
+        String(20), nullable=True,
+        comment="Código secuencial: M26-XX (patología), C26-XX (citología)"
+    )
+
+    # Cantidad de cassettes (solo patología)
+    cassette_count: Mapped[int | None] = mapped_column(
+        SmallInteger, nullable=True,
+        comment="Cantidad de cassettes para muestras de patología"
+    )
 
     # Estado y tracking
     status: Mapped[LabOrderStatus] = mapped_column(
@@ -62,6 +82,17 @@ class LabOrder(Base):
     result_received_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Canal de entrega de resultados
+    delivery_channel: Mapped[DeliveryChannel | None] = mapped_column(
+        Enum(DeliveryChannel, values_callable=lambda e: [m.value for m in e]),
+        nullable=True,
+        comment="Canal por el cual se entregó el resultado"
+    )
+    delivered_by: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True,
+        comment="Usuario que entregó el resultado"
+    )
+
     # Notas
     clinical_indication: Mapped[str] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -79,6 +110,7 @@ class LabOrder(Base):
     patient: Mapped["Patient"] = relationship("Patient", back_populates="lab_orders")
     doctor: Mapped["User"] = relationship("User", foreign_keys=[doctor_id])
     sample_taker: Mapped["User | None"] = relationship("User", foreign_keys=[sample_taken_by])
+    deliverer: Mapped["User | None"] = relationship("User", foreign_keys=[delivered_by])
     appointment: Mapped["Appointment | None"] = relationship("Appointment")
     result: Mapped["LabResult | None"] = relationship("LabResult", back_populates="lab_order", uselist=False)
 

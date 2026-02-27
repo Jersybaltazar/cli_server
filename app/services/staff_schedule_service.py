@@ -13,14 +13,18 @@ from sqlalchemy.orm import joinedload
 
 from app.core.exceptions import NotFoundException, ValidationException
 from app.models.doctor_schedule import DoctorSchedule
+from app.models.staff_schedule import StaffSchedule
 from app.models.staff_schedule_override import StaffScheduleOverride, OverrideType
 from app.models.user import User, UserRole
 from app.schemas.staff_schedule import (
     DailyStaffResponse,
     MonthlyStaffResponse,
     StaffMember,
+    StaffScheduleCreate,
     StaffScheduleOverrideCreate,
     StaffScheduleOverrideResponse,
+    StaffScheduleResponse,
+    StaffScheduleUpdate,
     UserEmbed,
     WeeklyStaffResponse,
 )
@@ -66,6 +70,149 @@ def _load_override_options():
         joinedload(StaffScheduleOverride.substitute),
         joinedload(StaffScheduleOverride.creator),
     ]
+
+
+# ── CRUD de StaffSchedule ────────────────────────────
+
+async def create_staff_schedule(
+    db: AsyncSession,
+    clinic_id: UUID,
+    data: StaffScheduleCreate,
+) -> StaffScheduleResponse:
+    """Crea un turno recurrente para personal no-médico."""
+    user_result = await db.execute(
+        select(User).where(
+            User.id == data.user_id,
+            User.clinic_id == clinic_id,
+            User.is_active.is_(True),
+        )
+    )
+    user = user_result.scalar_one_or_none()
+    if not user:
+        raise NotFoundException("Usuario")
+
+    sched = StaffSchedule(
+        clinic_id=clinic_id,
+        user_id=data.user_id,
+        day_of_week=data.day_of_week,
+        start_time=data.start_time,
+        end_time=data.end_time,
+        shift_label=data.shift_label,
+    )
+    db.add(sched)
+    await db.flush()
+    await db.refresh(sched)
+
+    return StaffScheduleResponse(
+        id=sched.id,
+        clinic_id=sched.clinic_id,
+        user_id=sched.user_id,
+        day_of_week=sched.day_of_week,
+        start_time=sched.start_time,
+        end_time=sched.end_time,
+        shift_label=sched.shift_label,
+        is_active=sched.is_active,
+        user_name=f"{user.first_name} {user.last_name}",
+        user_role=user.role.value,
+    )
+
+
+async def list_staff_schedules(
+    db: AsyncSession,
+    clinic_id: UUID,
+    user_id: UUID | None = None,
+) -> list[StaffScheduleResponse]:
+    """Lista turnos recurrentes de personal."""
+    query = (
+        select(StaffSchedule)
+        .options(joinedload(StaffSchedule.user))
+        .where(
+            StaffSchedule.clinic_id == clinic_id,
+            StaffSchedule.is_active.is_(True),
+        )
+    )
+    if user_id:
+        query = query.where(StaffSchedule.user_id == user_id)
+
+    query = query.order_by(StaffSchedule.day_of_week, StaffSchedule.start_time)
+    result = await db.execute(query)
+    schedules = result.scalars().unique().all()
+
+    return [
+        StaffScheduleResponse(
+            id=s.id,
+            clinic_id=s.clinic_id,
+            user_id=s.user_id,
+            day_of_week=s.day_of_week,
+            start_time=s.start_time,
+            end_time=s.end_time,
+            shift_label=s.shift_label,
+            is_active=s.is_active,
+            user_name=f"{s.user.first_name} {s.user.last_name}" if s.user else None,
+            user_role=s.user.role.value if s.user else None,
+        )
+        for s in schedules
+    ]
+
+
+async def update_staff_schedule(
+    db: AsyncSession,
+    clinic_id: UUID,
+    schedule_id: UUID,
+    data: StaffScheduleUpdate,
+) -> StaffScheduleResponse:
+    """Actualiza un turno recurrente."""
+    result = await db.execute(
+        select(StaffSchedule)
+        .options(joinedload(StaffSchedule.user))
+        .where(
+            StaffSchedule.id == schedule_id,
+            StaffSchedule.clinic_id == clinic_id,
+        )
+    )
+    sched = result.scalar_one_or_none()
+    if not sched:
+        raise NotFoundException("Turno de personal")
+
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(sched, key, value)
+
+    await db.flush()
+    await db.refresh(sched)
+
+    return StaffScheduleResponse(
+        id=sched.id,
+        clinic_id=sched.clinic_id,
+        user_id=sched.user_id,
+        day_of_week=sched.day_of_week,
+        start_time=sched.start_time,
+        end_time=sched.end_time,
+        shift_label=sched.shift_label,
+        is_active=sched.is_active,
+        user_name=f"{sched.user.first_name} {sched.user.last_name}" if sched.user else None,
+        user_role=sched.user.role.value if sched.user else None,
+    )
+
+
+async def delete_staff_schedule(
+    db: AsyncSession,
+    clinic_id: UUID,
+    schedule_id: UUID,
+) -> None:
+    """Soft-delete de un turno recurrente."""
+    result = await db.execute(
+        select(StaffSchedule).where(
+            StaffSchedule.id == schedule_id,
+            StaffSchedule.clinic_id == clinic_id,
+        )
+    )
+    sched = result.scalar_one_or_none()
+    if not sched:
+        raise NotFoundException("Turno de personal")
+
+    sched.is_active = False
+    await db.flush()
 
 
 # ── CRUD de Overrides ────────────────────────────────
@@ -196,7 +343,7 @@ async def get_daily_staff(
     """
     day_of_week = target_date.weekday()  # 0=Lunes ... 6=Domingo
 
-    # Obtener todos los horarios activos para este día de la semana
+    # Obtener horarios de DoctorSchedule (médicos)
     schedules_result = await db.execute(
         select(DoctorSchedule)
         .options(joinedload(DoctorSchedule.doctor))
@@ -207,6 +354,18 @@ async def get_daily_staff(
         )
     )
     schedules = schedules_result.scalars().unique().all()
+
+    # Obtener horarios de StaffSchedule (personal no-médico)
+    staff_schedules_result = await db.execute(
+        select(StaffSchedule)
+        .options(joinedload(StaffSchedule.user))
+        .where(
+            StaffSchedule.clinic_id == clinic_id,
+            StaffSchedule.day_of_week == day_of_week,
+            StaffSchedule.is_active.is_(True),
+        )
+    )
+    staff_schedules = staff_schedules_result.scalars().unique().all()
 
     # Obtener overrides activos para esta fecha
     overrides_result = await db.execute(
@@ -308,6 +467,84 @@ async def get_daily_staff(
                 position=doctor.position,
                 schedule_start=sched.start_time,
                 schedule_end=sched.end_time,
+                is_override=False,
+                is_working=True,
+            ))
+
+    # Procesar personal no-médico con StaffSchedule
+    for ss in staff_schedules:
+        user = ss.user
+        if not user or not user.is_active:
+            continue
+
+        user_id = user.id
+        if user_id in seen_user_ids:
+            continue
+        seen_user_ids.add(user_id)
+
+        ovr = overrides_by_user.get(user_id)
+
+        if ovr:
+            if ovr.override_type in (OverrideType.DAY_OFF, OverrideType.VACATION, OverrideType.HOLIDAY):
+                staff_members.append(StaffMember(
+                    user_id=user_id,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    role=user.role.value,
+                    specialty=user.specialty,
+                    specialty_type=user.specialty_type,
+                    position=user.position,
+                    schedule_start=None,
+                    schedule_end=None,
+                    is_override=True,
+                    override_type=ovr.override_type,
+                    substitute_name=(
+                        f"{ovr.substitute.first_name} {ovr.substitute.last_name}"
+                        if ovr.substitute else None
+                    ),
+                    is_working=False,
+                ))
+            elif ovr.override_type == OverrideType.SHIFT_CHANGE:
+                staff_members.append(StaffMember(
+                    user_id=user_id,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    role=user.role.value,
+                    specialty=user.specialty,
+                    specialty_type=user.specialty_type,
+                    position=user.position,
+                    schedule_start=ovr.new_start_time,
+                    schedule_end=ovr.new_end_time,
+                    is_override=True,
+                    override_type=ovr.override_type,
+                    is_working=True,
+                ))
+            else:
+                staff_members.append(StaffMember(
+                    user_id=user_id,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    role=user.role.value,
+                    specialty=user.specialty,
+                    specialty_type=user.specialty_type,
+                    position=user.position,
+                    schedule_start=ss.start_time,
+                    schedule_end=ss.end_time,
+                    is_override=True,
+                    override_type=ovr.override_type,
+                    is_working=True,
+                ))
+        else:
+            staff_members.append(StaffMember(
+                user_id=user_id,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                role=user.role.value,
+                specialty=user.specialty,
+                specialty_type=user.specialty_type,
+                position=user.position,
+                schedule_start=ss.start_time,
+                schedule_end=ss.end_time,
                 is_override=False,
                 is_working=True,
             ))

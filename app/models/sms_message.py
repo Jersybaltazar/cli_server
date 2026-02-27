@@ -13,6 +13,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 
+class MessageChannel(str, enum.Enum):
+    """Canal de envío del mensaje."""
+    SMS = "sms"
+    WHATSAPP = "whatsapp"
+
+
 class SmsStatus(str, enum.Enum):
     """Estados de un mensaje SMS."""
     PENDING = "pending"
@@ -61,6 +67,11 @@ class SmsMessage(Base):
     status: Mapped[SmsStatus] = mapped_column(
         Enum(SmsStatus, values_callable=lambda e: [x.value for x in e]),
         nullable=False, default=SmsStatus.PENDING,
+    )
+    channel: Mapped[MessageChannel] = mapped_column(
+        Enum(MessageChannel, values_callable=lambda e: [x.value for x in e]),
+        nullable=False, default=MessageChannel.SMS,
+        comment="Canal de envío: sms o whatsapp"
     )
     twilio_sid: Mapped[str | None] = mapped_column(
         String(50), comment="SID del mensaje en Twilio"

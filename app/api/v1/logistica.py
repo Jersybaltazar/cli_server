@@ -39,6 +39,7 @@ _LOGISTICA_ROLES = (
     UserRole.CLINIC_ADMIN,
     UserRole.RECEPTIONIST,
     UserRole.DOCTOR,
+    UserRole.OBSTETRA,
 )
 
 

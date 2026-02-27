@@ -26,13 +26,13 @@ router = APIRouter()
 ROLE_CAN_CREATE: dict[UserRole, set[UserRole]] = {
     UserRole.SUPER_ADMIN: {
         UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN,
-        UserRole.DOCTOR, UserRole.RECEPTIONIST,
+        UserRole.DOCTOR, UserRole.OBSTETRA, UserRole.RECEPTIONIST,
     },
     UserRole.ORG_ADMIN: {
-        UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.RECEPTIONIST,
+        UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA, UserRole.RECEPTIONIST,
     },
     UserRole.CLINIC_ADMIN: {
-        UserRole.DOCTOR, UserRole.RECEPTIONIST,
+        UserRole.DOCTOR, UserRole.OBSTETRA, UserRole.RECEPTIONIST,
     },
 }
 

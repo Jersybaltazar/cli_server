@@ -42,7 +42,7 @@ def _schedule_to_response(schedule) -> DoctorScheduleResponse:
 async def get_doctor_schedules(
     doctor_id: UUID,
     user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR
+        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA
     )),
     db: AsyncSession = Depends(get_db),
 ):
@@ -50,8 +50,8 @@ async def get_doctor_schedules(
     Obtiene todos los horarios activos de un doctor.
     Doctores solo pueden ver sus propios horarios.
     """
-    # Un doctor solo puede ver sus propios horarios
-    if user.role == UserRole.DOCTOR and user.id != doctor_id:
+    # Un doctor/obstetra solo puede ver sus propios horarios
+    if user.role in (UserRole.DOCTOR, UserRole.OBSTETRA) and user.id != doctor_id:
         from app.core.exceptions import ForbiddenException
         raise ForbiddenException("Solo puede ver sus propios horarios")
 

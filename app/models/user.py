@@ -19,6 +19,7 @@ class UserRole(str, enum.Enum):
     ORG_ADMIN = "org_admin"
     CLINIC_ADMIN = "clinic_admin"
     DOCTOR = "doctor"
+    OBSTETRA = "obstetra"
     RECEPTIONIST = "receptionist"
 
 

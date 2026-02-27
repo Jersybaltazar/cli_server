@@ -10,12 +10,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import require_role
 from app.database import get_db
+from app.models.service import ServiceCategory
 from app.models.user import User, UserRole
 from app.schemas.service import (
     ServiceCreate,
     ServiceListResponse,
     ServiceResponse,
     ServiceUpdate,
+)
+from app.schemas.service_variant import (
+    ServiceVariantCreate,
+    ServiceVariantResponse,
+    ServiceVariantUpdate,
 )
 from app.services import service_service
 
@@ -27,6 +33,7 @@ _ALL_ROLES = (
     UserRole.CLINIC_ADMIN,
     UserRole.RECEPTIONIST,
     UserRole.DOCTOR,
+    UserRole.OBSTETRA,
 )
 
 _ADMIN_ROLES = (
@@ -42,13 +49,14 @@ async def list_services(
     size: int = Query(20, ge=1, le=100),
     search: str | None = Query(None, description="Buscar por nombre"),
     is_active: bool | None = Query(None, description="Filtrar por estado activo"),
+    category: ServiceCategory | None = Query(None, description="Filtrar por categoría"),
     user: User = Depends(require_role(*_ALL_ROLES)),
     db: AsyncSession = Depends(get_db),
 ):
     """Lista paginada de servicios de la clínica."""
     return await service_service.list_services(
         db, clinic_id=user.clinic_id, page=page, size=size,
-        search=search, is_active=is_active,
+        search=search, is_active=is_active, category=category,
     )
 
 
@@ -102,3 +110,54 @@ async def delete_service(
 ):
     """Desactivar un servicio (soft delete, solo admins)."""
     await service_service.delete_service(db, clinic_id=user.clinic_id, service_id=service_id)
+
+
+# ── Variantes de precio ───────────────────────────────
+
+@router.post("/variants", response_model=ServiceVariantResponse, status_code=201)
+async def create_service_variant(
+    data: ServiceVariantCreate,
+    user: User = Depends(require_role(*_ADMIN_ROLES)),
+    db: AsyncSession = Depends(get_db),
+):
+    """Crea una variante de precio para un servicio. Solo admins."""
+    return await service_service.create_service_variant(
+        db, clinic_id=user.clinic_id, data=data
+    )
+
+
+@router.get("/variants/list", response_model=list[ServiceVariantResponse])
+async def list_service_variants(
+    service_id: UUID | None = Query(None, description="Filtrar por servicio"),
+    user: User = Depends(require_role(*_ALL_ROLES)),
+    db: AsyncSession = Depends(get_db),
+):
+    """Lista variantes de precio con precio calculado."""
+    return await service_service.list_service_variants(
+        db, clinic_id=user.clinic_id, service_id=service_id
+    )
+
+
+@router.patch("/variants/{variant_id}", response_model=ServiceVariantResponse)
+async def update_service_variant(
+    variant_id: UUID,
+    data: ServiceVariantUpdate,
+    user: User = Depends(require_role(*_ADMIN_ROLES)),
+    db: AsyncSession = Depends(get_db),
+):
+    """Actualiza una variante de precio. Solo admins."""
+    return await service_service.update_service_variant(
+        db, clinic_id=user.clinic_id, variant_id=variant_id, data=data
+    )
+
+
+@router.delete("/variants/{variant_id}", status_code=204)
+async def delete_service_variant(
+    variant_id: UUID,
+    user: User = Depends(require_role(*_ADMIN_ROLES)),
+    db: AsyncSession = Depends(get_db),
+):
+    """Elimina una variante de precio. Solo admins."""
+    await service_service.delete_service_variant(
+        db, clinic_id=user.clinic_id, variant_id=variant_id
+    )

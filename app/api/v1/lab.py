@@ -22,7 +22,7 @@ router = APIRouter()
 async def create_lab_order(
     data: LabOrderCreate,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR))
+    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA))
 ):
     """Crea una nueva orden de laboratorio (Admin o Doctor)."""
     return await lab_service.create_order(db, user.clinic_id, user.id, data)
@@ -66,7 +66,7 @@ async def update_lab_order(
     order_id: UUID,
     data: LabOrderUpdate,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.RECEPTIONIST))
+    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA, UserRole.RECEPTIONIST))
 ):
     """Actualiza el estado o datos de tracking de una orden."""
     return await lab_service.update_order(db, user.clinic_id, order_id, data, user.id)
@@ -76,7 +76,7 @@ async def register_lab_result(
     order_id: UUID,
     data: LabResultCreate,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR))
+    user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA))
 ):
     """Registra el resultado detallado de una orden (Admin o Doctor)."""
     return await lab_service.register_result(db, user.clinic_id, order_id, user.id, data)

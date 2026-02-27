@@ -12,6 +12,7 @@ from uuid import UUID
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import ConflictException, NotFoundException
 from app.core.security import decrypt_pii, encrypt_pii
@@ -96,6 +97,7 @@ def _patient_to_response(
             else None
         ),
         notes=patient.notes,
+        fur=patient.fur,
         is_active=patient.is_active,
         registered_sedes=registered_sedes,
         created_at=patient.created_at,
@@ -242,10 +244,14 @@ async def get_patient(
     """
     org_id = await _get_clinic_org_id(db, clinic_id)
 
+    _eager = selectinload(Patient.clinic_links).selectinload(PatientClinicLink.clinic)
+
     if org_id:
         # Cross-sede: permitir si el paciente pertenece a la misma org
         result = await db.execute(
-            select(Patient).where(
+            select(Patient)
+            .options(_eager)
+            .where(
                 Patient.id == patient_id,
                 Patient.organization_id == org_id,
             )
@@ -253,7 +259,9 @@ async def get_patient(
     else:
         # Clínica independiente: solo pacientes propios
         result = await db.execute(
-            select(Patient).where(
+            select(Patient)
+            .options(_eager)
+            .where(
                 Patient.id == patient_id,
                 Patient.clinic_id == clinic_id,
             )

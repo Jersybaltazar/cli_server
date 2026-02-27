@@ -28,6 +28,13 @@ from app.api.v1.organizations import router as organizations_router
 from app.api.v1.sms import router as sms_router
 from app.api.v1.staff_schedules import router as staff_schedules_router
 from app.api.v1.lab import router as lab_router
+from app.api.v1.service_packages import router as service_packages_router
+from app.api.v1.patient_packages import router as patient_packages_router
+from app.api.v1.commissions import router as commissions_router
+from app.api.v1.accounts import router as accounts_router
+from app.api.v1.procedure_supplies import router as procedure_supplies_router
+from app.api.v1.vaccinations import router as vaccinations_router
+from app.api.v1.bank_reconciliation import router as bank_reconciliation_router
 
 api_v1_router = APIRouter()
 
@@ -167,4 +174,46 @@ api_v1_router.include_router(
     staff_schedules_router,
     prefix="/staff-schedules",
     tags=["Turnos de Personal"],
+)
+
+api_v1_router.include_router(
+    service_packages_router,
+    prefix="/packages",
+    tags=["Paquetes de Servicios"],
+)
+
+api_v1_router.include_router(
+    patient_packages_router,
+    prefix="/patient-packages",
+    tags=["Inscripciones en Paquetes"],
+)
+
+api_v1_router.include_router(
+    commissions_router,
+    prefix="/commissions",
+    tags=["Comisiones Médicas"],
+)
+
+api_v1_router.include_router(
+    accounts_router,
+    prefix="/accounts",
+    tags=["Cuentas por Cobrar/Pagar"],
+)
+
+api_v1_router.include_router(
+    procedure_supplies_router,
+    prefix="/procedure-supplies",
+    tags=["Procedimiento → Insumos"],
+)
+
+api_v1_router.include_router(
+    vaccinations_router,
+    prefix="/vaccinations",
+    tags=["Vacunación"],
+)
+
+api_v1_router.include_router(
+    bank_reconciliation_router,
+    prefix="/bank-reconciliation",
+    tags=["Conciliación Bancaria"],
 )

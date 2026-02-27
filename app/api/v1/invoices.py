@@ -72,7 +72,7 @@ async def list_invoices(
     sort_by: str | None = Query("created_at", description="Campo para ordenar"),
     sort_order: str | None = Query("desc", description="Orden: asc o desc"),
     user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.RECEPTIONIST
+        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA, UserRole.RECEPTIONIST
     )),
     db: AsyncSession = Depends(get_db),
 ):
@@ -107,7 +107,7 @@ async def list_invoices(
 async def get_invoice(
     invoice_id: UUID,
     user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.RECEPTIONIST
+        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN, UserRole.DOCTOR, UserRole.OBSTETRA, UserRole.RECEPTIONIST
     )),
     db: AsyncSession = Depends(get_db),
 ):

@@ -3,6 +3,7 @@ Servicio de control prenatal: CRUD de visitas + historial completo.
 Estándar CLAP/SIP.
 """
 
+from datetime import date
 from uuid import UUID
 
 from sqlalchemy import select
@@ -71,15 +72,22 @@ async def create_visit(
             Patient.clinic_id == clinic_id,
         )
     )
-    if not patient_result.scalar_one_or_none():
+    patient = patient_result.scalar_one_or_none()
+    if not patient:
         raise NotFoundException("Paciente")
+
+    # Auto-calcular semana gestacional desde FUR si no se provee
+    gestational_week = data.gestational_week
+    if gestational_week is None and patient.fur is not None:
+        delta = date.today() - patient.fur
+        gestational_week = round(delta.days / 7, 1)
 
     visit = PrenatalVisit(
         clinic_id=clinic_id,
         patient_id=data.patient_id,
         record_id=data.record_id,
         doctor_id=user.id,
-        gestational_week=data.gestational_week,
+        gestational_week=gestational_week,
         weight=data.weight,
         blood_pressure_systolic=data.blood_pressure_systolic,
         blood_pressure_diastolic=data.blood_pressure_diastolic,
