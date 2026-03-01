@@ -91,6 +91,8 @@ def _pp_to_response(pp: PatientPackage) -> PatientPackageResponse:
         updated_at=pp.updated_at,
         package_name=pp.package.name if pp.package else None,
         patient_name=pp.patient.full_name if pp.patient else None,
+        patient_fur=pp.patient.fur if pp.patient else None,
+        patient_gestational_weeks=pp.patient.gestational_weeks if pp.patient else None,
         package=pkg_embed,
         payments=[_payment_to_response(p) for p in pp.payments],
     )

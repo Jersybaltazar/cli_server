@@ -1,6 +1,6 @@
 """Schemas Pydantic v2 para PatientPackage y PackagePayment."""
 
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -90,6 +90,8 @@ class PatientPackageResponse(BaseModel):
     # Datos expandidos
     package_name: str | None = None
     patient_name: str | None = None
+    patient_fur: date | None = None
+    patient_gestational_weeks: float | None = None
     package: PackageEmbed | None = None
     payments: list[PackagePaymentResponse] = []
 
