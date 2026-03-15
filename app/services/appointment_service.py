@@ -481,6 +481,19 @@ async def change_status(
         await _generate_commission_on_complete(db, appointment)
         await _auto_deduct_supplies_on_complete(db, appointment, user.id)
 
+    # Enviar SMS/WhatsApp de confirmación cuando se confirma una cita (fire-and-forget)
+    if data.status == AppointmentStatus.CONFIRMED:
+        import asyncio
+
+        async def _dispatch_confirmation_sms():
+            try:
+                from app.tasks.sms_tasks import send_appointment_confirmation_task
+                await asyncio.to_thread(send_appointment_confirmation_task.delay, str(appointment.id))
+            except Exception:
+                pass
+
+        asyncio.create_task(_dispatch_confirmation_sms())
+
     # Recargar con relaciones
     result = await db.execute(
         select(Appointment)

@@ -1,8 +1,55 @@
 from datetime import datetime
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.lab_order import DeliveryChannel, LabOrderStatus, LabStudyType
+
+
+# ── Embedded summaries ─────────────────────────────────────────
+
+class PatientSummary(BaseModel):
+    id: UUID
+    first_name: str
+    last_name: str
+
+    class Config:
+        from_attributes = True
+
+class DoctorSummary(BaseModel):
+    id: UUID
+    first_name: str
+    last_name: str
+
+    class Config:
+        from_attributes = True
+
+# ── File Upload Schemas ─────────────────────────────────────────
+
+_ALLOWED_CONTENT_TYPES = {
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+}
+
+class PresignedUploadRequest(BaseModel):
+    filename: str = Field(..., max_length=255)
+    content_type: str
+
+    @field_validator("content_type")
+    @classmethod
+    def validate_content_type(cls, v: str) -> str:
+        if v not in _ALLOWED_CONTENT_TYPES:
+            raise ValueError(
+                f"Tipo no permitido. Se aceptan: PDF, JPG, PNG, GIF, WEBP."
+            )
+        return v
+
+class PresignedUploadResponse(BaseModel):
+    upload_url: str
+    file_key: str
+    public_url: str
 
 # ── Lab Order Schemas ──────────────────────────────────────────
 
@@ -55,6 +102,10 @@ class LabOrderResponse(LabOrderBase):
 
     created_at: datetime
     updated_at: datetime
+
+    patient: PatientSummary | None = None
+    doctor: DoctorSummary | None = None
+    result: "LabResultResponse | None" = None
 
     class Config:
         from_attributes = True

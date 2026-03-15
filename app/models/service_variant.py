@@ -68,7 +68,7 @@ class ServicePriceVariant(Base):
 
     # ── Relaciones ────────────────────────────────────
     clinic: Mapped["Clinic"] = relationship("Clinic")  # noqa: F821
-    service: Mapped["Service"] = relationship("Service")  # noqa: F821
+    service: Mapped["Service"] = relationship("Service", back_populates="variants")  # noqa: F821
 
     __table_args__ = (
         UniqueConstraint(

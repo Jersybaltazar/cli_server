@@ -215,6 +215,18 @@ async def send_message(
         return result
 
 
+# ── Render de plantillas ─────────────────────────────
+
+def render_template(template: str, **ctx: str) -> str:
+    """
+    Reemplaza {variable} en la plantilla con los valores dados.
+    Variables soportadas: patient_name, doctor_name, date, time, clinic_name.
+    """
+    for key, value in ctx.items():
+        template = template.replace(f"{{{key}}}", str(value))
+    return template
+
+
 # ── Mensajes predefinidos ────────────────────────────
 
 def build_appointment_reminder(

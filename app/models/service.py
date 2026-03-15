@@ -24,7 +24,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -85,6 +85,11 @@ class Service(Base):
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    # ── Relaciones ────────────────────────────────────
+    variants: Mapped[list["ServicePriceVariant"]] = relationship(  # noqa: F821
+        "ServicePriceVariant", back_populates="service", lazy="select"
     )
 
     __table_args__ = (

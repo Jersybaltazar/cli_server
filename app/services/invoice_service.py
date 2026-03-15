@@ -332,6 +332,19 @@ async def _emit_invoice(
             ip_address=ip_address,
         )
 
+        # Notificar al paciente si la emisión fue exitosa (fire-and-forget)
+        if status == SunatStatus.ACCEPTED:
+            import asyncio
+
+            async def _dispatch_invoice_sms():
+                try:
+                    from app.tasks.sms_tasks import send_invoice_notification_task
+                    await asyncio.to_thread(send_invoice_notification_task.delay, str(invoice.id))
+                except Exception:
+                    pass
+
+            asyncio.create_task(_dispatch_invoice_sms())
+
     except NubefactError as e:
         invoice.sunat_status = SunatStatus.ERROR
         invoice.sunat_error_message = e.message

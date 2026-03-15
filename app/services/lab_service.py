@@ -91,7 +91,11 @@ async def get_order(db: AsyncSession, clinic_id: UUID, order_id: UUID) -> LabOrd
     result = await db.execute(
         select(LabOrder)
         .where(LabOrder.id == order_id, LabOrder.clinic_id == clinic_id)
-        .options(selectinload(LabOrder.result))
+        .options(
+            selectinload(LabOrder.result),
+            selectinload(LabOrder.patient),
+            selectinload(LabOrder.doctor),
+        )
     )
     order = result.scalar_one_or_none()
     if not order:
@@ -130,7 +134,11 @@ async def list_orders(
 
     # Aplicar paginación y orden
     query = query.order_by(LabOrder.ordered_at.desc()).offset((page - 1) * size).limit(size)
-    result = await db.execute(query.options(selectinload(LabOrder.result)))
+    result = await db.execute(query.options(
+        selectinload(LabOrder.result),
+        selectinload(LabOrder.patient),
+        selectinload(LabOrder.doctor),
+    ))
     items = result.scalars().all()
 
     # Contar pendientes y vencidos
@@ -196,26 +204,36 @@ async def register_result(
     user_id: UUID,
     data: LabResultCreate
 ) -> LabResult:
-    """Registra el resultado de una orden y actualiza su estado."""
+    """Registra o actualiza el resultado de una orden y actualiza su estado."""
     order = await get_order(db, clinic_id, order_id)
-    
+
     if order.status == LabOrderStatus.CANCELLED:
         raise ConflictException("No se puede registrar resultado en una orden cancelada")
 
-    # Crear el resultado (lab_order_id viene del path, no del body)
-    result_obj = LabResult(
-        **data.model_dump(exclude={"lab_order_id"}),
-        lab_order_id=order_id,
-        clinic_id=clinic_id,
-        recorded_by=user_id,
-        recorded_at=func.now()
-    )
-    db.add(result_obj)
-    
+    payload = data.model_dump(exclude={"lab_order_id"})
+
+    if order.result:
+        # Ya existe un resultado — actualizarlo (corrección de resultado)
+        result_obj = order.result
+        for key, value in payload.items():
+            setattr(result_obj, key, value)
+        result_obj.recorded_by = user_id
+        result_obj.recorded_at = func.now()
+    else:
+        # Primera vez — crear el resultado
+        result_obj = LabResult(
+            **payload,
+            lab_order_id=order_id,
+            clinic_id=clinic_id,
+            recorded_by=user_id,
+            recorded_at=func.now(),
+        )
+        db.add(result_obj)
+
     # Actualizar estado de la orden
     order.status = LabOrderStatus.RESULT_RECEIVED
     order.result_received_at = func.now()
-    
+
     await db.commit()
     await db.refresh(result_obj)
     return result_obj
@@ -270,6 +288,10 @@ async def get_patient_history(db: AsyncSession, clinic_id: UUID, patient_id: UUI
         select(LabOrder)
         .where(LabOrder.clinic_id == clinic_id, LabOrder.patient_id == patient_id)
         .order_by(LabOrder.ordered_at.desc())
-        .options(selectinload(LabOrder.result))
+        .options(
+            selectinload(LabOrder.result),
+            selectinload(LabOrder.patient),
+            selectinload(LabOrder.doctor),
+        )
     )
     return list(result.scalars().all())

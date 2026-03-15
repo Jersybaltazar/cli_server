@@ -65,6 +65,9 @@ class UserResponse(BaseModel):
     last_login: datetime | None = None
     created_at: datetime
     updated_at: datetime
+    # Datos de sede (enriquecidos en el endpoint)
+    clinic_name: str | None = None
+    clinic_branch_name: str | None = None
 
     model_config = {"from_attributes": True}
 

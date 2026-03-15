@@ -9,6 +9,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from app.models.service import ServiceCategory
+from app.models.service_variant import ModifierType
 
 
 # ── Create / Update ──────────────────────────────────
@@ -41,6 +42,16 @@ class ServiceUpdate(BaseModel):
 # ── Response ─────────────────────────────────────────
 
 
+class ServiceVariantInline(BaseModel):
+    id: UUID
+    label: str
+    modifier_type: ModifierType
+    modifier_value: float
+    calculated_price: float = 0.0
+
+    model_config = {"from_attributes": True}
+
+
 class ServiceResponse(BaseModel):
     id: UUID
     clinic_id: UUID
@@ -53,6 +64,7 @@ class ServiceResponse(BaseModel):
     cost_price: float
     color: str | None = None
     is_active: bool
+    variants: list[ServiceVariantInline] = []
     created_at: datetime
     updated_at: datetime
 

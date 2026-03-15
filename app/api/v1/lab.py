@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth import get_current_user
@@ -11,9 +11,10 @@ from app.models.lab_order import LabOrderStatus, LabStudyType
 from app.schemas.lab import (
     LabOrderCreate, LabOrderUpdate, LabOrderResponse,
     LabResultCreate, LabResultResponse, LabDashboardStats,
-    LabOrderListResponse
+    LabOrderListResponse, PresignedUploadRequest, PresignedUploadResponse,
 )
 from app.services import lab_service
+from app.services import storage_service
 from app.auth.dependencies import require_role
 
 router = APIRouter()
@@ -80,6 +81,34 @@ async def register_lab_result(
 ):
     """Registra el resultado detallado de una orden (Admin o Doctor)."""
     return await lab_service.register_result(db, user.clinic_id, order_id, user.id, data)
+
+@router.post("/files/presigned-upload", response_model=PresignedUploadResponse)
+async def get_presigned_upload_url(
+    data: PresignedUploadRequest,
+    user: User = Depends(get_current_user),
+):
+    """
+    Genera una presigned PUT URL para subir un archivo (PDF/imagen) directamente
+    desde el browser a Cloudflare R2. El archivo nunca pasa por el backend.
+
+    Flujo:
+      1. Frontend llama este endpoint con { filename, content_type }
+      2. Recibe { upload_url, file_key, public_url }
+      3. Frontend hace PUT a upload_url con el archivo binario
+      4. Frontend guarda { name, url: public_url, key: file_key } en el resultado
+    """
+    try:
+        result = storage_service.generate_presigned_upload(
+            clinic_id=str(user.clinic_id),
+            filename=data.filename,
+            content_type=data.content_type,
+        )
+        return result
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+
 
 @router.get("/patients/{patient_id}/history", response_model=list[LabOrderResponse])
 async def get_patient_lab_history(

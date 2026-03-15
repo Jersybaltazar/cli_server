@@ -34,6 +34,14 @@ async def get_my_clinic(
     clinic = result.scalar_one_or_none()
     if not clinic:
         raise NotFoundException("Clinica no encontrada")
+
+    # Auto-generar slug si la clínica no tiene uno
+    if not clinic.slug:
+        base = clinic.branch_name or clinic.name
+        clinic.slug = Clinic.generate_slug(base)
+        await db.flush()
+        await db.refresh(clinic)
+
     return clinic
 
 

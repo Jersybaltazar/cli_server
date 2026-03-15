@@ -66,6 +66,13 @@ class Settings(BaseSettings):
     JSONPE_API_URL: str = "https://api.json.pe/api"
     JSONPE_API_TOKEN: str = "your-jsonpe-token"
 
+    # ── Cloudflare R2 (File Storage) ─────────────────
+    R2_ENDPOINT_URL: str = ""          # https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+    R2_ACCESS_KEY_ID: str = ""
+    R2_SECRET_ACCESS_KEY: str = ""
+    R2_BUCKET_NAME: str = "clinicsaas-files"
+    R2_PUBLIC_URL: str = ""            # https://files.tudominio.com (custom domain o URL pública del bucket)
+
     # ── JWT Keys (loaded at runtime) ─────────────────
     @property
     def jwt_private_key(self) -> str:

@@ -267,14 +267,21 @@ async def sign_record(
     Firma un registro clínico. Una vez firmado, es INMUTABLE.
     Solo el doctor que creó el registro puede firmarlo.
     """
-    result = await db.execute(
+    clinic_id = user.clinic_id
+    org_id = await _get_clinic_org_id(db, clinic_id)
+
+    query = (
         select(MedicalRecord)
         .options(*_load_options())
-        .where(
-            MedicalRecord.id == record_id,
-            MedicalRecord.clinic_id == user.clinic_id,
-        )
+        .where(MedicalRecord.id == record_id)
     )
+    if org_id:
+        org_clinic_ids = await get_org_clinic_ids(db, org_id)
+        query = query.where(MedicalRecord.clinic_id.in_(org_clinic_ids))
+    else:
+        query = query.where(MedicalRecord.clinic_id == clinic_id)
+
+    result = await db.execute(query)
     record = result.scalar_one_or_none()
 
     if not record:

@@ -19,6 +19,27 @@ from app.models.user import User, UserRole
 from app.models.user_clinic_access import UserClinicAccess
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 
+
+async def _get_visible_clinic_ids(user: User, db: AsyncSession) -> list:
+    """
+    Devuelve los clinic_ids visibles para un usuario:
+    - org_admin / super_admin: todas las sedes de su organización
+    - clinic_admin: solo su propia sede
+    """
+    if user.role in (UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN):
+        admin_clinic = await db.execute(
+            select(Clinic).where(Clinic.id == user.clinic_id)
+        )
+        admin_clinic_obj = admin_clinic.scalar_one_or_none()
+        if admin_clinic_obj and admin_clinic_obj.organization_id:
+            result = await db.execute(
+                select(Clinic.id).where(
+                    Clinic.organization_id == admin_clinic_obj.organization_id
+                )
+            )
+            return list(result.scalars().all())
+    return [user.clinic_id]
+
 router = APIRouter()
 
 # ── Jerarquía de roles ───────────────────────────────
@@ -60,9 +81,10 @@ async def list_users(
     db: AsyncSession = Depends(get_db),
 ):
     """Lista usuarios de la clinica con filtro opcional por rol."""
-    query = select(User).where(User.clinic_id == user.clinic_id)
+    clinic_ids = await _get_visible_clinic_ids(user, db)
+    query = select(User).where(User.clinic_id.in_(clinic_ids))
     count_query = select(func.count()).select_from(User).where(
-        User.clinic_id == user.clinic_id
+        User.clinic_id.in_(clinic_ids)
     )
 
     if role:
@@ -82,8 +104,24 @@ async def list_users(
 
     pages = (total + size - 1) // size if total > 0 else 1
 
+    # Cargar nombres de sedes para enriquecer la respuesta
+    clinics_result = await db.execute(
+        select(Clinic.id, Clinic.name, Clinic.branch_name).where(
+            Clinic.id.in_(clinic_ids)
+        )
+    )
+    clinic_map = {row.id: row for row in clinics_result.all()}
+
+    def _to_response(u: User) -> UserResponse:
+        data = UserResponse.model_validate(u)
+        clinic = clinic_map.get(u.clinic_id)
+        if clinic:
+            data.clinic_name = clinic.name
+            data.clinic_branch_name = clinic.branch_name
+        return data
+
     return UserListResponse(
-        items=[UserResponse.model_validate(u) for u in users],
+        items=[_to_response(u) for u in users],
         total=total,
         page=page,
         size=size,
@@ -193,10 +231,11 @@ async def update_user(
     db: AsyncSession = Depends(get_db),
 ):
     """Actualiza datos de un usuario de la clinica."""
+    clinic_ids = await _get_visible_clinic_ids(user, db)
     result = await db.execute(
         select(User).where(
             User.id == user_id,
-            User.clinic_id == user.clinic_id,
+            User.clinic_id.in_(clinic_ids),
         )
     )
     target = result.scalar_one_or_none()
@@ -222,10 +261,11 @@ async def toggle_user_active(
     db: AsyncSession = Depends(get_db),
 ):
     """Activa o desactiva un usuario de la clinica."""
+    clinic_ids = await _get_visible_clinic_ids(user, db)
     result = await db.execute(
         select(User).where(
             User.id == user_id,
-            User.clinic_id == user.clinic_id,
+            User.clinic_id.in_(clinic_ids),
         )
     )
     target = result.scalar_one_or_none()

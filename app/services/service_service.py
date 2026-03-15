@@ -8,6 +8,7 @@ from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import ConflictException, NotFoundException
 from app.models.service import Service, ServiceCategory
@@ -17,6 +18,7 @@ from app.schemas.service import (
     ServiceListResponse,
     ServiceResponse,
     ServiceUpdate,
+    ServiceVariantInline,
 )
 from app.schemas.service_variant import (
     ServiceVariantCreate,
@@ -25,8 +27,30 @@ from app.schemas.service_variant import (
 )
 
 
+def _compute_variants(service: Service) -> list[ServiceVariantInline]:
+    result = []
+    for v in getattr(service, "variants", []):
+        if not v.is_active:
+            continue
+        base = service.price
+        if v.modifier_type == ModifierType.FIXED_SURCHARGE:
+            calculated = float(base) + float(v.modifier_value)
+        else:
+            calculated = float(base) * (1 + float(v.modifier_value) / 100)
+        result.append(ServiceVariantInline(
+            id=v.id,
+            label=v.label,
+            modifier_type=v.modifier_type,
+            modifier_value=float(v.modifier_value),
+            calculated_price=round(calculated, 2),
+        ))
+    return result
+
+
 def _to_response(service: Service) -> ServiceResponse:
-    return ServiceResponse.model_validate(service)
+    data = ServiceResponse.model_validate(service)
+    data.variants = _compute_variants(service)
+    return data
 
 
 # ── CRUD ─────────────────────────────────────────────
@@ -61,8 +85,12 @@ async def create_service(
     )
     db.add(service)
     await db.commit()
-    await db.refresh(service)
-    return _to_response(service)
+    result = await db.execute(
+        select(Service)
+        .where(Service.id == service.id)
+        .options(selectinload(Service.variants))
+    )
+    return _to_response(result.scalar_one())
 
 
 async def update_service(
@@ -101,8 +129,12 @@ async def update_service(
         setattr(service, key, value)
 
     await db.commit()
-    await db.refresh(service)
-    return _to_response(service)
+    result = await db.execute(
+        select(Service)
+        .where(Service.id == service_id)
+        .options(selectinload(Service.variants))
+    )
+    return _to_response(result.scalar_one())
 
 
 async def delete_service(
@@ -131,10 +163,9 @@ async def get_service(
     service_id: UUID,
 ) -> ServiceResponse:
     result = await db.execute(
-        select(Service).where(
-            Service.id == service_id,
-            Service.clinic_id == clinic_id,
-        )
+        select(Service)
+        .where(Service.id == service_id, Service.clinic_id == clinic_id)
+        .options(selectinload(Service.variants))
     )
     service = result.scalar_one_or_none()
     if not service:
@@ -166,7 +197,13 @@ async def list_services(
     pages = max(1, math.ceil(total / size))
 
     # Paginated
-    query = query.order_by(Service.name).offset((page - 1) * size).limit(size)
+    query = (
+        query
+        .options(selectinload(Service.variants))
+        .order_by(Service.name)
+        .offset((page - 1) * size)
+        .limit(size)
+    )
     result = await db.execute(query)
     services = result.scalars().all()
 
@@ -187,6 +224,7 @@ async def get_active_services(
     result = await db.execute(
         select(Service)
         .where(Service.clinic_id == clinic_id, Service.is_active == True)
+        .options(selectinload(Service.variants))
         .order_by(Service.name)
     )
     return [_to_response(s) for s in result.scalars().all()]
