@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import get_current_user
 from app.database import get_db
 from app.models.user import User
+from app.rate_limit import limiter
 from app.schemas.auth import (
     ChangePasswordRequest,
     ChangePasswordResponse,
@@ -37,9 +38,10 @@ def _get_client_ip(request: Request) -> str | None:
 
 
 @router.post("/register", response_model=RegisterResponse, status_code=201)
+@limiter.limit("3/minute")
 async def register(
-    data: ClinicRegisterRequest,
     request: Request,
+    data: ClinicRegisterRequest,
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -52,9 +54,10 @@ async def register(
 
 
 @router.post("/login", response_model=LoginResponse)
+@limiter.limit("5/minute")
 async def login(
-    data: LoginRequest,
     request: Request,
+    data: LoginRequest,
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -67,9 +70,10 @@ async def login(
 
 
 @router.post("/mfa/verify", response_model=TokenResponse)
+@limiter.limit("5/minute")
 async def verify_mfa(
-    data: MFAVerifyRequest,
     request: Request,
+    data: MFAVerifyRequest,
     db: AsyncSession = Depends(get_db),
 ):
     """Verifica el código MFA/TOTP y emite tokens definitivos."""

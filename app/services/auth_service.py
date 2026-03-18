@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 import pyotp
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.auth.jwt import (
     create_access_token,
@@ -25,7 +26,13 @@ from app.core.exceptions import (
     NotFoundException,
     ValidationException,
 )
-from app.core.security import hash_password, verify_password
+from app.core.security import (
+    DUMMY_HASH,
+    decrypt_pii,
+    encrypt_pii,
+    hash_password_async,
+    verify_password_async,
+)
 from app.models.clinic import Clinic
 from app.models.organization import Organization, PlanType
 from app.models.user import User, UserRole
@@ -109,7 +116,7 @@ async def register_clinic(
     user = User(
         clinic_id=clinic.id,
         email=data.email,
-        hashed_password=hash_password(data.password),
+        hashed_password=await hash_password_async(data.password),
         role=UserRole.ORG_ADMIN,
         first_name=data.first_name,
         last_name=data.last_name,
@@ -187,25 +194,27 @@ async def login(
     Autentica un usuario con email y contraseña.
     Si tiene MFA habilitado, retorna un token temporal.
     """
-    # Buscar usuario con su clínica
+    # Buscar usuario con su clínica en un solo query (joinedload)
     result = await db.execute(
-        select(User).where(User.email == data.email, User.is_active.is_(True))
+        select(User)
+        .options(joinedload(User.clinic))
+        .where(User.email == data.email, User.is_active.is_(True))
     )
     user = result.scalar_one_or_none()
 
     if not user:
+        # Ejecutar bcrypt dummy para que el tiempo de respuesta sea igual
+        # al caso de "password incorrecta" y evitar timing attacks.
+        await verify_password_async(data.password, DUMMY_HASH)
         logger.warning("Login fallido: usuario no encontrado para email=%s", data.email)
         raise CredentialsException("Email o contraseña incorrectos")
 
-    if not verify_password(data.password, user.hashed_password):
+    if not await verify_password_async(data.password, user.hashed_password):
         logger.warning(
-            "Login fallido: contraseña incorrecta para user_id=%s email=%s clinic_id=%s",
-            user.id, user.email, user.clinic_id,
+            "Login fallido: contraseña incorrecta para email=%s",
+            data.email,
         )
         raise CredentialsException("Email o contraseña incorrectos")
-
-    # Cargar la clínica
-    await db.refresh(user, ["clinic"])
 
     if not user.clinic:
         raise NotFoundException("Clínica no encontrada")
@@ -309,8 +318,11 @@ async def verify_mfa(
     if not user or not user.mfa_secret:
         raise CredentialsException("Usuario no encontrado")
 
+    # Descifrar el secreto MFA almacenado con Fernet
+    mfa_secret_plain = decrypt_pii(user.mfa_secret)
+
     # Verificar TOTP
-    totp = pyotp.TOTP(user.mfa_secret)
+    totp = pyotp.TOTP(mfa_secret_plain)
     if not totp.verify(code, valid_window=1):
         raise CredentialsException("Código MFA incorrecto")
 
@@ -371,7 +383,7 @@ async def refresh_tokens(db: AsyncSession, refresh_token_str: str) -> TokenRespo
 async def setup_mfa(db: AsyncSession, user: User) -> MFASetupResponse:
     """Genera el secreto TOTP y la URI para el QR."""
     secret = pyotp.random_base32()
-    user.mfa_secret = secret
+    user.mfa_secret = encrypt_pii(secret)
     user.is_mfa_enabled = True
     await db.flush()
 
@@ -399,10 +411,10 @@ async def change_password(
     ip_address: str | None = None,
 ) -> None:
     """Cambia la contraseña del usuario autenticado."""
-    if not verify_password(current_password, user.hashed_password):
+    if not await verify_password_async(current_password, user.hashed_password):
         raise CredentialsException("La contraseña actual es incorrecta")
 
-    user.hashed_password = hash_password(new_password)
+    user.hashed_password = await hash_password_async(new_password)
     await db.flush()
 
     await log_action(

@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import require_role
 from app.core.exceptions import ConflictException, ForbiddenException, NotFoundException
-from app.core.security import hash_password
+from app.core.security import hash_password_async
 from app.database import get_db
 from app.models.clinic import Clinic
 from app.models.user import User, UserRole
@@ -196,7 +196,7 @@ async def create_user(
     new_user = User(
         clinic_id=target_clinic_id,
         email=data.email,
-        hashed_password=hash_password(data.password),
+        hashed_password=await hash_password_async(data.password),
         role=data.role,
         first_name=data.first_name,
         last_name=data.last_name,

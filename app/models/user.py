@@ -83,7 +83,7 @@ class User(Base):
         "Clinic", back_populates="users"
     )
     clinic_accesses: Mapped[list["UserClinicAccess"]] = relationship(  # noqa: F821
-        "UserClinicAccess", back_populates="user", lazy="selectin"
+        "UserClinicAccess", back_populates="user"
     )
 
     @property

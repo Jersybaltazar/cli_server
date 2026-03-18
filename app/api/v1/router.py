@@ -35,6 +35,7 @@ from app.api.v1.accounts import router as accounts_router
 from app.api.v1.procedure_supplies import router as procedure_supplies_router
 from app.api.v1.vaccinations import router as vaccinations_router
 from app.api.v1.bank_reconciliation import router as bank_reconciliation_router
+from app.api.v1.storage import router as storage_router
 
 api_v1_router = APIRouter()
 
@@ -216,4 +217,10 @@ api_v1_router.include_router(
     bank_reconciliation_router,
     prefix="/bank-reconciliation",
     tags=["Conciliación Bancaria"],
+)
+
+api_v1_router.include_router(
+    storage_router,
+    prefix="/storage",
+    tags=["Almacenamiento (R2)"],
 )

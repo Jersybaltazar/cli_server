@@ -64,13 +64,13 @@ class Clinic(Base):
         "Organization", back_populates="clinics"
     )
     users: Mapped[list["User"]] = relationship(  # noqa: F821
-        "User", back_populates="clinic", lazy="selectin"
+        "User", back_populates="clinic"
     )
     patients: Mapped[list["Patient"]] = relationship(  # noqa: F821
-        "Patient", back_populates="clinic", lazy="selectin"
+        "Patient", back_populates="clinic"
     )
     user_accesses: Mapped[list["UserClinicAccess"]] = relationship(  # noqa: F821
-        "UserClinicAccess", back_populates="clinic", lazy="selectin"
+        "UserClinicAccess", back_populates="clinic"
     )
 
     @property

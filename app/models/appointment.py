@@ -15,6 +15,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    Column,
     DateTime,
     Enum,
     ForeignKey,
@@ -23,7 +24,7 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import ExcludeConstraint, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -130,12 +131,22 @@ class Appointment(Base):
     doctor: Mapped["User"] = relationship("User", foreign_keys=[doctor_id])  # noqa: F821
     booker: Mapped["User"] = relationship("User", foreign_keys=[booked_by])  # noqa: F821
 
-    # ── Índices para consultas frecuentes ────────────
+    # ── Índices y constraints ─────────────────────────
     __table_args__ = (
         Index("idx_appointment_clinic_date", "clinic_id", "start_time"),
         Index("idx_appointment_doctor_date", "doctor_id", "start_time"),
         Index("idx_appointment_patient", "patient_id", "start_time"),
         Index("idx_appointment_status", "clinic_id", "status"),
+        # Exclusion constraint: impide solapamiento de citas del mismo doctor
+        # a nivel de base de datos (requiere extensión btree_gist).
+        # Usa tstzrange(start_time, end_time) con operador && (overlap).
+        ExcludeConstraint(
+            (Column("doctor_id"), "="),
+            (func.tstzrange(Column("start_time"), Column("end_time")), "&&"),
+            where=(Column("status").notin_(["cancelled", "no_show"])),
+            name="excl_doctor_appointment_overlap",
+            using="gist",
+        ),
     )
 
     def __repr__(self) -> str:
