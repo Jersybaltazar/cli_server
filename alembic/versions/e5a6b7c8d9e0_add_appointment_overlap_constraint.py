@@ -28,7 +28,7 @@ def upgrade() -> None:
             doctor_id WITH =,
             tstzrange(start_time, end_time) WITH &&
         )
-        WHERE (status NOT IN ('cancelled', 'no_show'))
+        WHERE (status NOT IN ('CANCELLED', 'NO_SHOW'))
     """)
 
 

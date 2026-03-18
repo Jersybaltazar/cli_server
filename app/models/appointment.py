@@ -143,7 +143,7 @@ class Appointment(Base):
         ExcludeConstraint(
             (Column("doctor_id"), "="),
             (func.tstzrange(Column("start_time"), Column("end_time")), "&&"),
-            where=(Column("status").notin_(["cancelled", "no_show"])),
+            where=(Column("status").notin_(["CANCELLED", "NO_SHOW"])),
             name="excl_doctor_appointment_overlap",
             using="gist",
         ),
