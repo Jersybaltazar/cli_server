@@ -1,0 +1,41 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Procedimiento") }}
+{{ m.open_table() }}
+{{ m.field("Indicación", f.get("indication")) }}
+{{ m.field("Tipo de catéter", f.get("catheter_type")) }}
+{{ m.field("Volumen de solución salina", f.get("saline_volume"), "ml") }}
+{{ m.field("Tolerancia", f.get("tolerance")) }}
+{{ m.close_table() }}
+
+{{ m.section("Útero") }}
+{{ m.open_table() }}
+{{ m.field("Posición / Forma", f.get("uterus_position")) }}
+{{ m.field("Dimensiones", f.get("uterus_size")) }}
+{{ m.field("Miometrio", f.get("myometrium")) }}
+{{ m.close_table() }}
+
+{{ m.section("Cavidad uterina") }}
+{{ m.open_table() }}
+{{ m.field("Distensión de la cavidad", f.get("cavity_distension")) }}
+{{ m.field("Forma de la cavidad", f.get("cavity_shape")) }}
+{{ m.field("Endometrio", f.get("endometrium")) }}
+{{ m.field("Lesiones intracavitarias", f.get("intracavitary_lesions")) }}
+{{ m.close_table() }}
+
+{{ m.section("Trompas") }}
+{{ m.open_table() }}
+{{ m.field("Permeabilidad tubárica derecha", f.get("right_tube_patency")) }}
+{{ m.field("Permeabilidad tubárica izquierda", f.get("left_tube_patency")) }}
+{{ m.close_table() }}
+
+{{ m.section("Otros hallazgos") }}
+{{ m.open_table() }}
+{{ m.field("Líquido libre post-procedimiento", f.get("free_fluid")) }}
+{{ m.field("Observaciones", f.get("notes")) }}
+{{ m.close_table() }}
+{% endblock %}

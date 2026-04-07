@@ -36,6 +36,8 @@ from app.api.v1.procedure_supplies import router as procedure_supplies_router
 from app.api.v1.vaccinations import router as vaccinations_router
 from app.api.v1.bank_reconciliation import router as bank_reconciliation_router
 from app.api.v1.storage import router as storage_router
+from app.api.v1.imaging import router as imaging_router
+from app.api.v1.imaging_templates import router as imaging_templates_router
 
 api_v1_router = APIRouter()
 
@@ -223,4 +225,16 @@ api_v1_router.include_router(
     storage_router,
     prefix="/storage",
     tags=["Almacenamiento (R2)"],
+)
+
+api_v1_router.include_router(
+    imaging_router,
+    prefix="/imaging-reports",
+    tags=["Informes de Imagenología"],
+)
+
+api_v1_router.include_router(
+    imaging_templates_router,
+    prefix="/imaging-templates",
+    tags=["Plantillas de Imagenología"],
 )

@@ -1,0 +1,63 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Datos obstétricos") }}
+{{ m.open_table() }}
+{{ m.field("Edad gestacional", f.get("ga")) }}
+{{ m.field("Corionicidad / Amnionicidad", f.get("chorionicity_amnionicity")) }}
+{{ m.field("Indicación", f.get("indication")) }}
+{{ m.close_table() }}
+
+{{ m.section("Feto 1 — Biometría y bienestar") }}
+{{ m.open_table() }}
+{{ m.field("PFE", f.get("f1_efw"), "g") }}
+{{ m.field("Percentil PFE", f.get("f1_efw_percentile")) }}
+{{ m.field("FCF", f.get("f1_fetal_heart_rate"), "lpm") }}
+{{ m.field("Bolsillo máximo", f.get("f1_max_pocket"), "cm") }}
+{{ m.close_table() }}
+
+{{ m.section("Feto 1 — Doppler") }}
+{{ m.open_table() }}
+{{ m.field("Arteria umbilical IP", f.get("f1_ua_pi")) }}
+{{ m.field("Arteria umbilical IR", f.get("f1_ua_ri")) }}
+{{ m.field("ACM IP", f.get("f1_mca_pi")) }}
+{{ m.field("ACM PSV", f.get("f1_mca_psv"), "cm/s") }}
+{{ m.field("ICP", f.get("f1_cpr")) }}
+{{ m.field("Ducto venoso onda 'a'", f.get("f1_dv_a_wave")) }}
+{{ m.close_table() }}
+
+{{ m.section("Feto 2 — Biometría y bienestar") }}
+{{ m.open_table() }}
+{{ m.field("PFE", f.get("f2_efw"), "g") }}
+{{ m.field("Percentil PFE", f.get("f2_efw_percentile")) }}
+{{ m.field("FCF", f.get("f2_fetal_heart_rate"), "lpm") }}
+{{ m.field("Bolsillo máximo", f.get("f2_max_pocket"), "cm") }}
+{{ m.close_table() }}
+
+{{ m.section("Feto 2 — Doppler") }}
+{{ m.open_table() }}
+{{ m.field("Arteria umbilical IP", f.get("f2_ua_pi")) }}
+{{ m.field("Arteria umbilical IR", f.get("f2_ua_ri")) }}
+{{ m.field("ACM IP", f.get("f2_mca_pi")) }}
+{{ m.field("ACM PSV", f.get("f2_mca_psv"), "cm/s") }}
+{{ m.field("ICP", f.get("f2_cpr")) }}
+{{ m.field("Ducto venoso onda 'a'", f.get("f2_dv_a_wave")) }}
+{{ m.close_table() }}
+
+{{ m.section("Comparación inter-fetal") }}
+{{ m.open_table() }}
+{{ m.field("Discordancia de pesos", f.get("weight_discordance"), "%") }}
+{{ m.field("Diferencia de líquido amniótico", f.get("amniotic_difference")) }}
+{{ m.field("Tamizaje TTTS / TAPS", f.get("ttts_taps_screening")) }}
+{{ m.close_table() }}
+
+{{ m.section("Arterias uterinas maternas") }}
+{{ m.open_table() }}
+{{ m.field("IP arteria uterina derecha", f.get("right_uterine_pi")) }}
+{{ m.field("IP arteria uterina izquierda", f.get("left_uterine_pi")) }}
+{{ m.field("IP medio", f.get("mean_uterine_pi")) }}
+{{ m.close_table() }}
+{% endblock %}

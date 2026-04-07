@@ -1,0 +1,67 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Datos obstétricos") }}
+{{ m.open_table() }}
+{{ m.field("FUR", f.get("lmp_date")) }}
+{{ m.field("EG por FUR", f.get("ga_by_lmp")) }}
+{{ m.field("Número de fetos", f.get("fetus_count")) }}
+{{ m.field("Presentación", f.get("presentation")) }}
+{{ m.field("Situación", f.get("lie")) }}
+{{ m.field("Posición dorso", f.get("dorsal_position")) }}
+{{ m.close_table() }}
+
+{{ m.section("Biometría fetal") }}
+{{ m.open_table() }}
+{{ m.field("DBP (Diámetro biparietal)", f.get("bpd"), "mm") }}
+{{ m.field("CC (Circunferencia cefálica)", f.get("hc"), "mm") }}
+{{ m.field("CA (Circunferencia abdominal)", f.get("ac"), "mm") }}
+{{ m.field("LF (Longitud femoral)", f.get("fl"), "mm") }}
+{{ m.field("LH (Longitud humeral)", f.get("hl"), "mm") }}
+{{ m.field("Peso fetal estimado (PFE)", f.get("efw"), "g") }}
+{{ m.field("Percentil PFE", f.get("efw_percentile")) }}
+{{ m.close_table() }}
+
+{{ m.section("Edad gestacional ecográfica") }}
+{{ m.open_table() }}
+{{ m.field("EG por biometría", f.get("ga_by_us")) }}
+{{ m.field("FPP", f.get("edd")) }}
+{{ m.close_table() }}
+
+{{ m.section("Frecuencia cardíaca y bienestar") }}
+{{ m.open_table() }}
+{{ m.field("FCF", f.get("fetal_heart_rate"), "lpm") }}
+{{ m.field("Movimientos fetales", f.get("fetal_movements")) }}
+{{ m.field("Tono", f.get("fetal_tone")) }}
+{{ m.close_table() }}
+
+{{ m.section("Líquido amniótico") }}
+{{ m.open_table() }}
+{{ m.field("ILA", f.get("afi"), "cm") }}
+{{ m.field("Bolsillo único máximo", f.get("max_pocket"), "cm") }}
+{{ m.field("Valoración", f.get("amniotic_assessment")) }}
+{{ m.close_table() }}
+
+{{ m.section("Placenta") }}
+{{ m.open_table() }}
+{{ m.field("Localización", f.get("placenta_location")) }}
+{{ m.field("Grado de madurez", f.get("placenta_grade")) }}
+{{ m.field("Distancia al OCI", f.get("placenta_oci_distance"), "mm") }}
+{{ m.field("Observaciones", f.get("placenta_notes")) }}
+{{ m.close_table() }}
+
+{{ m.section("Cordón umbilical") }}
+{{ m.open_table() }}
+{{ m.field("Número de vasos", f.get("cord_vessels")) }}
+{{ m.field("Inserción", f.get("cord_insertion")) }}
+{{ m.close_table() }}
+
+{{ m.section("Cuello uterino") }}
+{{ m.open_table() }}
+{{ m.field("Longitud cervical", f.get("cervical_length"), "mm") }}
+{{ m.field("OCI", f.get("internal_os")) }}
+{{ m.close_table() }}
+{% endblock %}

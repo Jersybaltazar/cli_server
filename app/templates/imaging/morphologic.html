@@ -1,0 +1,100 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Datos obstétricos") }}
+{{ m.open_table() }}
+{{ m.field("FUR", f.get("lmp_date")) }}
+{{ m.field("EG por FUR", f.get("ga_by_lmp")) }}
+{{ m.field("FPP", f.get("edd")) }}
+{{ m.field("Presentación", f.get("presentation")) }}
+{{ m.field("Situación", f.get("lie")) }}
+{{ m.close_table() }}
+
+{{ m.section("Biometría fetal") }}
+{{ m.open_table() }}
+{{ m.field("DBP", f.get("bpd"), "mm") }}
+{{ m.field("CC", f.get("hc"), "mm") }}
+{{ m.field("CA", f.get("ac"), "mm") }}
+{{ m.field("LF", f.get("fl"), "mm") }}
+{{ m.field("LH", f.get("hl"), "mm") }}
+{{ m.field("PFE", f.get("efw"), "g") }}
+{{ m.field("Percentil PFE", f.get("efw_percentile")) }}
+{{ m.field("EG por biometría", f.get("ga_by_us")) }}
+{{ m.close_table() }}
+
+{{ m.section("Cabeza y SNC") }}
+{{ m.open_table() }}
+{{ m.field("Cráneo", f.get("skull")) }}
+{{ m.field("Línea media / Hoz cerebral", f.get("midline")) }}
+{{ m.field("Cavum septum pellucidum", f.get("csp")) }}
+{{ m.field("Ventrículos laterales", f.get("lateral_ventricles")) }}
+{{ m.field("Cerebelo (DTC)", f.get("cerebellum"), "mm") }}
+{{ m.field("Cisterna magna", f.get("cisterna_magna"), "mm") }}
+{{ m.field("Pliegue nucal", f.get("nuchal_fold"), "mm") }}
+{{ m.close_table() }}
+
+{{ m.section("Cara") }}
+{{ m.open_table() }}
+{{ m.field("Perfil", f.get("profile")) }}
+{{ m.field("Órbitas", f.get("orbits")) }}
+{{ m.field("Labio superior", f.get("upper_lip")) }}
+{{ m.field("Paladar", f.get("palate")) }}
+{{ m.field("Hueso nasal", f.get("nasal_bone")) }}
+{{ m.close_table() }}
+
+{{ m.section("Tórax y corazón") }}
+{{ m.open_table() }}
+{{ m.field("Tórax", f.get("thorax")) }}
+{{ m.field("Pulmones", f.get("lungs")) }}
+{{ m.field("Diafragma", f.get("diaphragm")) }}
+{{ m.field("Situs cardíaco", f.get("cardiac_situs")) }}
+{{ m.field("Cuatro cámaras", f.get("four_chamber")) }}
+{{ m.field("Tractos de salida (5C / 3VT)", f.get("outflow_tracts")) }}
+{{ m.field("Frecuencia cardíaca", f.get("fetal_heart_rate"), "lpm") }}
+{{ m.field("Ritmo", f.get("cardiac_rhythm")) }}
+{{ m.close_table() }}
+
+{{ m.section("Abdomen") }}
+{{ m.open_table() }}
+{{ m.field("Estómago", f.get("stomach")) }}
+{{ m.field("Pared abdominal", f.get("abdominal_wall")) }}
+{{ m.field("Inserción del cordón", f.get("cord_insertion")) }}
+{{ m.field("Hígado / Vesícula", f.get("liver_gb")) }}
+{{ m.field("Intestino", f.get("bowel")) }}
+{{ m.close_table() }}
+
+{{ m.section("Aparato genitourinario") }}
+{{ m.open_table() }}
+{{ m.field("Riñones", f.get("kidneys")) }}
+{{ m.field("Vejiga", f.get("bladder")) }}
+{{ m.field("Pelvis renal", f.get("renal_pelvis"), "mm") }}
+{{ m.field("Genitales", f.get("genitals")) }}
+{{ m.close_table() }}
+
+{{ m.section("Columna y extremidades") }}
+{{ m.open_table() }}
+{{ m.field("Columna vertebral", f.get("spine")) }}
+{{ m.field("Miembros superiores", f.get("upper_limbs")) }}
+{{ m.field("Miembros inferiores", f.get("lower_limbs")) }}
+{{ m.field("Manos / Pies", f.get("hands_feet")) }}
+{{ m.close_table() }}
+
+{{ m.section("Anexos") }}
+{{ m.open_table() }}
+{{ m.field("ILA", f.get("afi"), "cm") }}
+{{ m.field("Placenta", f.get("placenta")) }}
+{{ m.field("Distancia al OCI", f.get("placenta_oci_distance"), "mm") }}
+{{ m.field("Cordón (n° vasos)", f.get("cord_vessels")) }}
+{{ m.field("Cuello uterino", f.get("cervical_length"), "mm") }}
+{{ m.close_table() }}
+
+{{ m.section("Doppler de tamizaje (opcional)") }}
+{{ m.open_table() }}
+{{ m.field("IP arteria uterina derecha", f.get("right_uterine_pi")) }}
+{{ m.field("IP arteria uterina izquierda", f.get("left_uterine_pi")) }}
+{{ m.field("IP arteria umbilical", f.get("ua_pi")) }}
+{{ m.close_table() }}
+{% endblock %}

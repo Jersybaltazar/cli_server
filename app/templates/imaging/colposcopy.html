@@ -1,0 +1,67 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Datos clínicos") }}
+{{ m.open_table() }}
+{{ m.field("Indicación del examen", f.get("indication")) }}
+{{ m.field("Última menstruación", f.get("lmp_date")) }}
+{{ m.field("Método anticonceptivo", f.get("contraception")) }}
+{{ m.field("PAP previo", f.get("previous_pap")) }}
+{{ m.field("Prueba de VPH", f.get("hpv_test")) }}
+{{ m.close_table() }}
+
+{{ m.section("Adecuación del examen") }}
+{{ m.open_table() }}
+{{ m.field("Visualización", f.get("visualization"), "") }}
+{{ m.field("Adecuación", f.get("adequacy"), "") }}
+{{ m.field("Tipo de zona de transformación (ZT)", f.get("transformation_zone_type")) }}
+{{ m.field("Unión escamo-columnar", f.get("scj_visibility")) }}
+{{ m.close_table() }}
+
+{{ m.section("Cuello uterino — Hallazgos") }}
+{{ m.open_table() }}
+{{ m.field("Aspecto general", f.get("general_appearance")) }}
+{{ m.field("Epitelio acetoblanco", f.get("acetowhite_epithelium")) }}
+{{ m.field("Punteado", f.get("punctation")) }}
+{{ m.field("Mosaico", f.get("mosaic")) }}
+{{ m.field("Vasos atípicos", f.get("atypical_vessels")) }}
+{{ m.field("Lesiones vasculares", f.get("vascular_lesions")) }}
+{{ m.field("Ácido acético — reacción", f.get("acetic_acid_reaction")) }}
+{{ m.field("Test de Schiller (Lugol)", f.get("schiller_test")) }}
+{{ m.close_table() }}
+
+{{ m.section("Localización de lesiones") }}
+{{ m.open_table() }}
+{{ m.field("Localización (cuadrantes)", f.get("lesion_location")) }}
+{{ m.field("Tamaño aproximado", f.get("lesion_size")) }}
+{{ m.field("Extensión al canal endocervical", f.get("endocervical_extension")) }}
+{{ m.field("Extensión a vagina", f.get("vaginal_extension")) }}
+{{ m.close_table() }}
+
+{{ m.section("Clasificación colposcópica (IFCPC 2011)") }}
+{{ m.open_table() }}
+{{ m.field("Hallazgos colposcópicos normales", f.get("normal_findings")) }}
+{{ m.field("Hallazgos anormales — grado 1 (menores)", f.get("abnormal_g1")) }}
+{{ m.field("Hallazgos anormales — grado 2 (mayores)", f.get("abnormal_g2")) }}
+{{ m.field("Sospecha de invasión", f.get("suspect_invasion")) }}
+{{ m.field("Hallazgos misceláneos", f.get("misc_findings")) }}
+{{ m.close_table() }}
+
+{{ m.section("Vagina / Vulva") }}
+{{ m.open_table() }}
+{{ m.field("Vagina", f.get("vagina")) }}
+{{ m.field("Vulva / Periné", f.get("vulva")) }}
+{{ m.close_table() }}
+
+{{ m.section("Procedimientos realizados") }}
+{{ m.open_table() }}
+{{ m.field("Biopsia dirigida", f.get("directed_biopsy")) }}
+{{ m.field("Sitio(s) de biopsia", f.get("biopsy_sites")) }}
+{{ m.field("Curetaje endocervical", f.get("ecc")) }}
+{{ m.field("Tolerancia al procedimiento", f.get("procedure_tolerance")) }}
+{{ m.field("Complicaciones", f.get("complications")) }}
+{{ m.close_table() }}
+{% endblock %}

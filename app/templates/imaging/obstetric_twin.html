@@ -1,0 +1,62 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Datos obstétricos") }}
+{{ m.open_table() }}
+{{ m.field("FUR", f.get("lmp_date")) }}
+{{ m.field("EG por FUR", f.get("ga_by_lmp")) }}
+{{ m.field("Corionicidad", f.get("chorionicity")) }}
+{{ m.field("Amnionicidad", f.get("amnionicity")) }}
+{{ m.field("FPP", f.get("edd")) }}
+{{ m.close_table() }}
+
+{{ m.section("Feto 1 — Biometría") }}
+{{ m.open_table() }}
+{{ m.field("Presentación", f.get("f1_presentation")) }}
+{{ m.field("DBP", f.get("f1_bpd"), "mm") }}
+{{ m.field("CC", f.get("f1_hc"), "mm") }}
+{{ m.field("CA", f.get("f1_ac"), "mm") }}
+{{ m.field("LF", f.get("f1_fl"), "mm") }}
+{{ m.field("PFE", f.get("f1_efw"), "g") }}
+{{ m.field("Percentil PFE", f.get("f1_efw_percentile")) }}
+{{ m.field("FCF", f.get("f1_fetal_heart_rate"), "lpm") }}
+{{ m.field("EG por biometría", f.get("f1_ga_by_us")) }}
+{{ m.close_table() }}
+
+{{ m.section("Feto 1 — Anexos") }}
+{{ m.open_table() }}
+{{ m.field("Líquido amniótico (bolsillo)", f.get("f1_max_pocket"), "cm") }}
+{{ m.field("Placenta", f.get("f1_placenta")) }}
+{{ m.field("Cordón", f.get("f1_cord")) }}
+{{ m.close_table() }}
+
+{{ m.section("Feto 2 — Biometría") }}
+{{ m.open_table() }}
+{{ m.field("Presentación", f.get("f2_presentation")) }}
+{{ m.field("DBP", f.get("f2_bpd"), "mm") }}
+{{ m.field("CC", f.get("f2_hc"), "mm") }}
+{{ m.field("CA", f.get("f2_ac"), "mm") }}
+{{ m.field("LF", f.get("f2_fl"), "mm") }}
+{{ m.field("PFE", f.get("f2_efw"), "g") }}
+{{ m.field("Percentil PFE", f.get("f2_efw_percentile")) }}
+{{ m.field("FCF", f.get("f2_fetal_heart_rate"), "lpm") }}
+{{ m.field("EG por biometría", f.get("f2_ga_by_us")) }}
+{{ m.close_table() }}
+
+{{ m.section("Feto 2 — Anexos") }}
+{{ m.open_table() }}
+{{ m.field("Líquido amniótico (bolsillo)", f.get("f2_max_pocket"), "cm") }}
+{{ m.field("Placenta", f.get("f2_placenta")) }}
+{{ m.field("Cordón", f.get("f2_cord")) }}
+{{ m.close_table() }}
+
+{{ m.section("Discordancia y membrana") }}
+{{ m.open_table() }}
+{{ m.field("Discordancia de pesos", f.get("weight_discordance"), "%") }}
+{{ m.field("Membrana intergemelar", f.get("intertwin_membrane")) }}
+{{ m.field("Cuello uterino", f.get("cervical_length"), "mm") }}
+{{ m.close_table() }}
+{% endblock %}

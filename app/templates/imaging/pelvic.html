@@ -1,0 +1,44 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Útero") }}
+{{ m.open_table() }}
+{{ m.field("Posición", f.get("uterus_position")) }}
+{{ m.field("Forma", f.get("uterus_shape")) }}
+{{ m.field("Diámetro longitudinal", f.get("uterus_length"), "mm") }}
+{{ m.field("Diámetro anteroposterior", f.get("uterus_ap"), "mm") }}
+{{ m.field("Diámetro transverso", f.get("uterus_transverse"), "mm") }}
+{{ m.field("Volumen uterino", f.get("uterus_volume"), "cc") }}
+{{ m.field("Contornos", f.get("uterus_contours")) }}
+{{ m.field("Ecoestructura miometrial", f.get("myometrium")) }}
+{{ m.close_table() }}
+
+{{ m.section("Endometrio") }}
+{{ m.open_table() }}
+{{ m.field("Grosor endometrial", f.get("endometrium_thickness"), "mm") }}
+{{ m.field("Ecoestructura", f.get("endometrium_pattern")) }}
+{{ m.close_table() }}
+
+{{ m.section("Ovario derecho") }}
+{{ m.open_table() }}
+{{ m.field("Dimensiones", f.get("right_ovary_size")) }}
+{{ m.field("Volumen", f.get("right_ovary_volume"), "cc") }}
+{{ m.field("Folículos", f.get("right_ovary_follicles")) }}
+{{ m.close_table() }}
+
+{{ m.section("Ovario izquierdo") }}
+{{ m.open_table() }}
+{{ m.field("Dimensiones", f.get("left_ovary_size")) }}
+{{ m.field("Volumen", f.get("left_ovary_volume"), "cc") }}
+{{ m.field("Folículos", f.get("left_ovary_follicles")) }}
+{{ m.close_table() }}
+
+{{ m.section("Fondo de saco de Douglas") }}
+{{ m.open_table() }}
+{{ m.field("Líquido libre", f.get("free_fluid")) }}
+{{ m.field("Observaciones", f.get("douglas_notes")) }}
+{{ m.close_table() }}
+{% endblock %}

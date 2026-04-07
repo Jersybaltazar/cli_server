@@ -1,0 +1,70 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Datos obstétricos") }}
+{{ m.open_table() }}
+{{ m.field("FUR", f.get("lmp_date")) }}
+{{ m.field("EG por FUR", f.get("ga_by_lmp")) }}
+{{ m.field("Edad materna", f.get("maternal_age"), "años") }}
+{{ m.field("Antecedentes relevantes", f.get("relevant_history")) }}
+{{ m.close_table() }}
+
+{{ m.section("Embrión / Feto") }}
+{{ m.open_table() }}
+{{ m.field("Número de embriones", f.get("embryo_count")) }}
+{{ m.field("LCR (CRL)", f.get("crl"), "mm") }}
+{{ m.field("EG por LCR", f.get("ga_by_crl")) }}
+{{ m.field("FCF", f.get("fetal_heart_rate"), "lpm") }}
+{{ m.field("Movimientos fetales", f.get("fetal_movements")) }}
+{{ m.close_table() }}
+
+{{ m.section("Marcadores de aneuploidía (1er trimestre)") }}
+{{ m.open_table() }}
+{{ m.field("Translucencia nucal (TN)", f.get("nuchal_translucency"), "mm") }}
+{{ m.field("Percentil TN", f.get("nt_percentile")) }}
+{{ m.field("Hueso nasal", f.get("nasal_bone")) }}
+{{ m.field("Ducto venoso", f.get("ductus_venosus")) }}
+{{ m.field("Regurgitación tricuspídea", f.get("tricuspid_regurgitation")) }}
+{{ m.field("Ángulo facial frontomaxilar", f.get("frontomaxillary_angle")) }}
+{{ m.close_table() }}
+
+{{ m.section("Doppler de arterias uterinas") }}
+{{ m.open_table() }}
+{{ m.field("IP uterina derecha", f.get("right_uterine_pi")) }}
+{{ m.field("IP uterina izquierda", f.get("left_uterine_pi")) }}
+{{ m.field("IP medio", f.get("mean_uterine_pi")) }}
+{{ m.field("Notch", f.get("uterine_notch")) }}
+{{ m.close_table() }}
+
+{{ m.section("Anatomía precoz") }}
+{{ m.open_table() }}
+{{ m.field("Cráneo / SNC", f.get("skull_cns")) }}
+{{ m.field("Cara / perfil", f.get("face_profile")) }}
+{{ m.field("Tórax / corazón", f.get("thorax_heart")) }}
+{{ m.field("Abdomen / pared", f.get("abdomen_wall")) }}
+{{ m.field("Columna vertebral", f.get("spine")) }}
+{{ m.field("Extremidades", f.get("limbs")) }}
+{{ m.field("Vejiga", f.get("bladder")) }}
+{{ m.close_table() }}
+
+{{ m.section("Cálculo de riesgo") }}
+{{ m.open_table() }}
+{{ m.field("Riesgo basal trisomía 21", f.get("risk_t21_baseline")) }}
+{{ m.field("Riesgo combinado trisomía 21", f.get("risk_t21_combined")) }}
+{{ m.field("Riesgo trisomía 18", f.get("risk_t18")) }}
+{{ m.field("Riesgo trisomía 13", f.get("risk_t13")) }}
+{{ m.field("Riesgo preeclampsia precoz", f.get("risk_preeclampsia")) }}
+{{ m.field("Software / Algoritmo", f.get("risk_software")) }}
+{{ m.close_table() }}
+
+{{ m.section("Anexos y útero") }}
+{{ m.open_table() }}
+{{ m.field("Placenta", f.get("placenta")) }}
+{{ m.field("Líquido amniótico", f.get("amniotic_fluid")) }}
+{{ m.field("Útero", f.get("uterus_notes")) }}
+{{ m.field("Anexos", f.get("adnexa_notes")) }}
+{{ m.close_table() }}
+{% endblock %}

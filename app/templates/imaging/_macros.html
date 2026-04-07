@@ -1,0 +1,15 @@
+{# Macros reutilizables para informes de imagenología #}
+
+{% macro field(label, value, unit="") %}
+<tr>
+    <th>{{ label }}</th>
+    <td>{{ value if value not in (none, "", []) else "—" }}{% if value not in (none, "", []) and unit %} {{ unit }}{% endif %}</td>
+</tr>
+{% endmacro %}
+
+{% macro section(title) %}
+<h3>{{ title }}</h3>
+{% endmacro %}
+
+{% macro open_table() %}<table class="findings-table"><tbody>{% endmacro %}
+{% macro close_table() %}</tbody></table>{% endmacro %}

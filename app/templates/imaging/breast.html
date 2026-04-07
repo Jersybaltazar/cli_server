@@ -1,0 +1,34 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Antecedentes / Indicación") }}
+{{ m.open_table() }}
+{{ m.field("Motivo del estudio", f.get("indication")) }}
+{{ m.field("Patrón mamario (ACR)", f.get("acr_pattern")) }}
+{{ m.close_table() }}
+
+{{ m.section("Mama derecha") }}
+{{ m.open_table() }}
+{{ m.field("Parénquima", f.get("right_parenchyma")) }}
+{{ m.field("Lesiones", f.get("right_lesions")) }}
+{{ m.field("Conductos galactóforos", f.get("right_ducts")) }}
+{{ m.field("Hueco axilar derecho", f.get("right_axilla")) }}
+{{ m.close_table() }}
+
+{{ m.section("Mama izquierda") }}
+{{ m.open_table() }}
+{{ m.field("Parénquima", f.get("left_parenchyma")) }}
+{{ m.field("Lesiones", f.get("left_lesions")) }}
+{{ m.field("Conductos galactóforos", f.get("left_ducts")) }}
+{{ m.field("Hueco axilar izquierdo", f.get("left_axilla")) }}
+{{ m.close_table() }}
+
+{{ m.section("Categorización BI-RADS") }}
+{{ m.open_table() }}
+{{ m.field("BI-RADS mama derecha", f.get("birads_right")) }}
+{{ m.field("BI-RADS mama izquierda", f.get("birads_left")) }}
+{{ m.close_table() }}
+{% endblock %}

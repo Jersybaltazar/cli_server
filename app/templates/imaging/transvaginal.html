@@ -1,0 +1,47 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Útero (vía transvaginal)") }}
+{{ m.open_table() }}
+{{ m.field("Posición", f.get("uterus_position")) }}
+{{ m.field("Forma", f.get("uterus_shape")) }}
+{{ m.field("Longitud", f.get("uterus_length"), "mm") }}
+{{ m.field("Anteroposterior", f.get("uterus_ap"), "mm") }}
+{{ m.field("Transverso", f.get("uterus_transverse"), "mm") }}
+{{ m.field("Volumen", f.get("uterus_volume"), "cc") }}
+{{ m.field("Miometrio", f.get("myometrium")) }}
+{{ m.field("Cuello uterino", f.get("cervix")) }}
+{{ m.close_table() }}
+
+{{ m.section("Línea endometrial") }}
+{{ m.open_table() }}
+{{ m.field("Grosor", f.get("endometrium_thickness"), "mm") }}
+{{ m.field("Patrón / Fase", f.get("endometrium_pattern")) }}
+{{ m.field("Cavidad", f.get("uterine_cavity")) }}
+{{ m.close_table() }}
+
+{{ m.section("Ovario derecho") }}
+{{ m.open_table() }}
+{{ m.field("Dimensiones", f.get("right_ovary_size")) }}
+{{ m.field("Volumen", f.get("right_ovary_volume"), "cc") }}
+{{ m.field("Folículos antrales", f.get("right_ovary_follicles")) }}
+{{ m.field("Hallazgos", f.get("right_ovary_notes")) }}
+{{ m.close_table() }}
+
+{{ m.section("Ovario izquierdo") }}
+{{ m.open_table() }}
+{{ m.field("Dimensiones", f.get("left_ovary_size")) }}
+{{ m.field("Volumen", f.get("left_ovary_volume"), "cc") }}
+{{ m.field("Folículos antrales", f.get("left_ovary_follicles")) }}
+{{ m.field("Hallazgos", f.get("left_ovary_notes")) }}
+{{ m.close_table() }}
+
+{{ m.section("Anexos y fondo de saco") }}
+{{ m.open_table() }}
+{{ m.field("Líquido libre en Douglas", f.get("free_fluid")) }}
+{{ m.field("Otros hallazgos", f.get("adnexa_notes")) }}
+{{ m.close_table() }}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Datos obstétricos") }}
+{{ m.open_table() }}
+{{ m.field("FUR (Fecha de Última Regla)", f.get("lmp_date")) }}
+{{ m.field("Edad gestacional por FUR", f.get("ga_by_lmp")) }}
+{{ m.close_table() }}
+
+{{ m.section("Saco gestacional") }}
+{{ m.open_table() }}
+{{ m.field("Localización", f.get("sac_location")) }}
+{{ m.field("Diámetro medio del saco (DMS)", f.get("sac_mean_diameter"), "mm") }}
+{{ m.field("Forma / Contornos", f.get("sac_shape")) }}
+{{ m.field("Saco vitelino", f.get("yolk_sac")) }}
+{{ m.close_table() }}
+
+{{ m.section("Embrión") }}
+{{ m.open_table() }}
+{{ m.field("Número de embriones", f.get("embryo_count")) }}
+{{ m.field("Longitud cráneo-rabadilla (LCR/CRL)", f.get("crl"), "mm") }}
+{{ m.field("Frecuencia cardíaca fetal", f.get("fetal_heart_rate"), "lpm") }}
+{{ m.field("Movimientos embrionarios", f.get("embryo_movements")) }}
+{{ m.close_table() }}
+
+{{ m.section("Edad gestacional ecográfica") }}
+{{ m.open_table() }}
+{{ m.field("EG por LCR", f.get("ga_by_crl")) }}
+{{ m.field("Fecha probable de parto (FPP)", f.get("edd")) }}
+{{ m.close_table() }}
+
+{{ m.section("Anexos y útero") }}
+{{ m.open_table() }}
+{{ m.field("Útero", f.get("uterus_notes")) }}
+{{ m.field("Ovario derecho", f.get("right_ovary_notes")) }}
+{{ m.field("Ovario izquierdo", f.get("left_ovary_notes")) }}
+{{ m.field("Líquido libre", f.get("free_fluid")) }}
+{{ m.close_table() }}
+{% endblock %}

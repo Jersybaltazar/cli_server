@@ -1,0 +1,31 @@
+{% extends "_base.html" %}
+
+{% block content %}
+{% if findings %}
+<section class="findings">
+    <h3>Hallazgos</h3>
+    <table class="findings-table">
+        <tbody>
+        {% for key, value in findings.items() %}
+            <tr>
+                <th>{{ key }}</th>
+                <td>
+                    {% if value is mapping %}
+                        <pre>{{ value | tojson(indent=2) }}</pre>
+                    {% elif value is iterable and value is not string %}
+                        <ul>
+                        {% for v in value %}<li>{{ v }}</li>{% endfor %}
+                        </ul>
+                    {% else %}
+                        {{ value }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% else %}
+<p class="empty">Sin hallazgos registrados.</p>
+{% endif %}
+{% endblock %}

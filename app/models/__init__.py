@@ -34,6 +34,8 @@ from app.models.procedure_supply import ProcedureSupply
 from app.models.vaccination import VaccineScheme, PatientVaccination
 from app.models.service_variant import ServicePriceVariant
 from app.models.bank_reconciliation import BankReconciliation
+from app.models.imaging_report import ImagingReport, ImagingStudyType
+from app.models.imaging_template import ImagingTemplate
 
 __all__ = [
     "Organization",
@@ -83,4 +85,7 @@ __all__ = [
     "PatientVaccination",
     "ServicePriceVariant",
     "BankReconciliation",
+    "ImagingReport",
+    "ImagingStudyType",
+    "ImagingTemplate",
 ]

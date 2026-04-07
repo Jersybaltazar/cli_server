@@ -1,0 +1,58 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{% set f = findings or {} %}
+
+{{ m.section("Datos obstétricos") }}
+{{ m.open_table() }}
+{{ m.field("Edad gestacional", f.get("ga")) }}
+{{ m.field("FPP", f.get("edd")) }}
+{{ m.field("Indicación del Doppler", f.get("indication")) }}
+{{ m.close_table() }}
+
+{{ m.section("Biometría y bienestar fetal") }}
+{{ m.open_table() }}
+{{ m.field("Peso fetal estimado", f.get("efw"), "g") }}
+{{ m.field("Percentil PFE", f.get("efw_percentile")) }}
+{{ m.field("FCF", f.get("fetal_heart_rate"), "lpm") }}
+{{ m.field("ILA", f.get("afi"), "cm") }}
+{{ m.close_table() }}
+
+{{ m.section("Arteria umbilical") }}
+{{ m.open_table() }}
+{{ m.field("Índice de pulsatilidad (IP)", f.get("ua_pi")) }}
+{{ m.field("Índice de resistencia (IR)", f.get("ua_ri")) }}
+{{ m.field("S/D", f.get("ua_sd")) }}
+{{ m.field("Percentil IP", f.get("ua_pi_percentile")) }}
+{{ m.field("Onda diastólica", f.get("ua_diastolic_flow")) }}
+{{ m.close_table() }}
+
+{{ m.section("Arteria cerebral media (ACM)") }}
+{{ m.open_table() }}
+{{ m.field("IP", f.get("mca_pi")) }}
+{{ m.field("IR", f.get("mca_ri")) }}
+{{ m.field("PSV (velocidad sistólica máxima)", f.get("mca_psv"), "cm/s") }}
+{{ m.field("Múltiplos de la mediana (MoM)", f.get("mca_mom")) }}
+{{ m.close_table() }}
+
+{{ m.section("Índice cerebro-placentario (ICP)") }}
+{{ m.open_table() }}
+{{ m.field("Valor ICP (ACM-IP / AU-IP)", f.get("cpr")) }}
+{{ m.field("Percentil ICP", f.get("cpr_percentile")) }}
+{{ m.close_table() }}
+
+{{ m.section("Arterias uterinas") }}
+{{ m.open_table() }}
+{{ m.field("IP arteria uterina derecha", f.get("right_uterine_pi")) }}
+{{ m.field("IP arteria uterina izquierda", f.get("left_uterine_pi")) }}
+{{ m.field("IP medio", f.get("mean_uterine_pi")) }}
+{{ m.field("Notch (escotadura)", f.get("uterine_notch")) }}
+{{ m.close_table() }}
+
+{{ m.section("Ducto venoso") }}
+{{ m.open_table() }}
+{{ m.field("Onda 'a'", f.get("dv_a_wave")) }}
+{{ m.field("IP ducto venoso", f.get("dv_pi")) }}
+{{ m.close_table() }}
+{% endblock %}
