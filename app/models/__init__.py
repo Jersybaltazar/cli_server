@@ -36,6 +36,9 @@ from app.models.service_variant import ServicePriceVariant
 from app.models.bank_reconciliation import BankReconciliation
 from app.models.imaging_report import ImagingReport, ImagingStudyType
 from app.models.imaging_template import ImagingTemplate
+from app.models.prescription import Prescription, PrescriptionItem, PrescriptionTemplate
+from app.models.prescription_sequence import PrescriptionSequence
+from app.models.medication_catalog import MedicationCatalog
 
 __all__ = [
     "Organization",
@@ -88,4 +91,9 @@ __all__ = [
     "ImagingReport",
     "ImagingStudyType",
     "ImagingTemplate",
+    "Prescription",
+    "PrescriptionItem",
+    "PrescriptionTemplate",
+    "PrescriptionSequence",
+    "MedicationCatalog",
 ]

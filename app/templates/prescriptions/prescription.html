@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Receta Médica — {{ patient_name }}</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="letterhead">
+        {% if clinic.logo_url %}
+        <div class="logo">
+            <img src="{{ clinic.logo_url }}" alt="Logo">
+        </div>
+        {% endif %}
+        <div class="clinic-info">
+            <h1 class="clinic-name">{{ clinic.name }}</h1>
+            {% if clinic.branch_name %}
+            <div class="clinic-branch">{{ clinic.branch_name }}</div>
+            {% endif %}
+            {% if clinic.address %}
+            <div class="clinic-line">{{ clinic.address }}</div>
+            {% endif %}
+            <div class="clinic-line">
+                {% if clinic.phone %}Tel: {{ clinic.phone }}{% endif %}
+                {% if clinic.email %} · {{ clinic.email }}{% endif %}
+            </div>
+            <div class="clinic-line">RUC: {{ clinic.ruc }}</div>
+        </div>
+    </header>
+
+    <h2 class="report-title">
+        RECETA MÉDICA
+        {% if serial_number %}
+        <span class="rx-serial">N° {{ serial_number }}</span>
+        {% endif %}
+    </h2>
+
+    <section class="patient-block">
+        <table class="patient-table">
+            <tr>
+                <th>Paciente:</th>
+                <td>{{ patient_name }}</td>
+                <th>Edad:</th>
+                <td>{{ patient_age if patient_age is not none else "—" }} años</td>
+            </tr>
+            <tr>
+                <th>DNI:</th>
+                <td>{{ patient_document or "—" }}</td>
+                <th>Fecha:</th>
+                <td>{{ report_date }}</td>
+            </tr>
+            <tr>
+                <th>Médico:</th>
+                <td colspan="3">{{ doctor_name or "—" }}</td>
+            </tr>
+            {% if diagnosis or cie10_code %}
+            <tr>
+                <th>Diagnóstico:</th>
+                <td colspan="3">
+                    {{ diagnosis or "—" }}
+                    {% if cie10_code %} <span class="cie">({{ cie10_code }})</span>{% endif %}
+                </td>
+            </tr>
+            {% endif %}
+        </table>
+    </section>
+
+    <main class="report-body">
+        <section class="rx-items">
+            <h3>Rp/</h3>
+            {% if items %}
+            <ol class="rx-list">
+                {% for it in items %}
+                <li class="rx-item">
+                    <div class="rx-med">
+                        <strong>{{ it.medication }}</strong>
+                        {% if it.presentation %} — {{ it.presentation }}{% endif %}
+                        {% if it.quantity %}<span class="rx-qty"> · #{{ it.quantity }}</span>{% endif %}
+                    </div>
+                    <div class="rx-sig">
+                        {% set parts = [] %}
+                        {% if it.dose %}{% set _ = parts.append(it.dose) %}{% endif %}
+                        {% if it.frequency %}{% set _ = parts.append(it.frequency) %}{% endif %}
+                        {% if it.duration %}{% set _ = parts.append(it.duration) %}{% endif %}
+                        {{ parts | join(' · ') }}
+                    </div>
+                    {% if it.instructions %}
+                    <div class="rx-instructions">{{ it.instructions }}</div>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ol>
+            {% else %}
+            <p class="empty">Sin medicamentos registrados.</p>
+            {% endif %}
+        </section>
+
+        {% if notes %}
+        <section class="notes">
+            <h3>Indicaciones generales</h3>
+            <p>{{ notes }}</p>
+        </section>
+        {% endif %}
+    </main>
+
+    <footer class="signature">
+        {% if is_signed %}
+        <div class="signed-stamp">
+            <div class="signed-label">✓ FIRMADO DIGITALMENTE</div>
+            <div class="signed-name">{{ signer_name or doctor_name or "" }}</div>
+            <div class="signed-meta">Fecha de firma: {{ signed_date }}</div>
+        </div>
+        {% else %}
+        <div class="sig-line"></div>
+        <div class="sig-name">{{ doctor_name or "" }}</div>
+        <div class="sig-role">Médico responsable</div>
+        {% endif %}
+    </footer>
+</body>
+</html>

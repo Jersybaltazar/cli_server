@@ -38,6 +38,8 @@ from app.api.v1.bank_reconciliation import router as bank_reconciliation_router
 from app.api.v1.storage import router as storage_router
 from app.api.v1.imaging import router as imaging_router
 from app.api.v1.imaging_templates import router as imaging_templates_router
+from app.api.v1.prescriptions import router as prescriptions_router
+from app.api.v1.medications import router as medications_router
 
 api_v1_router = APIRouter()
 
@@ -237,4 +239,16 @@ api_v1_router.include_router(
     imaging_templates_router,
     prefix="/imaging-templates",
     tags=["Plantillas de Imagenología"],
+)
+
+api_v1_router.include_router(
+    prescriptions_router,
+    prefix="/prescriptions",
+    tags=["Recetas Médicas"],
+)
+
+api_v1_router.include_router(
+    medications_router,
+    prefix="/medications",
+    tags=["Catálogo de Medicamentos"],
 )

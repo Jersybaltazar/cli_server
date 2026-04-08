@@ -14,6 +14,7 @@ from app.core.security import decrypt_pii
 from app.models.clinic import Clinic
 from app.models.imaging_report import ImagingReport, ImagingStudyType
 from app.models.patient import Patient
+from app.models.prescription import Prescription
 from app.models.user import User
 
 # ── Helpers ──────────────────────────────────────────
@@ -33,6 +34,13 @@ _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates" / "imaging
 
 _env = Environment(
     loader=FileSystemLoader(str(_TEMPLATES_DIR)),
+    autoescape=select_autoescape(["html", "xml"]),
+)
+
+_RX_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates" / "prescriptions"
+
+_rx_env = Environment(
+    loader=FileSystemLoader(str(_RX_TEMPLATES_DIR)),
     autoescape=select_autoescape(["html", "xml"]),
 )
 
@@ -142,5 +150,69 @@ def render_imaging_pdf(
     stylesheets = [CSS(filename=str(css_path))] if css_path.exists() else []
 
     return HTML(string=html_str, base_url=str(_TEMPLATES_DIR)).write_pdf(
+        stylesheets=stylesheets
+    )
+
+
+def render_prescription_pdf(
+    *,
+    prescription: Prescription,
+    patient: Patient,
+    doctor: User | None,
+    clinic: Clinic,
+) -> bytes:
+    """Renderiza una receta médica a PDF (bytes)."""
+    from weasyprint import CSS, HTML
+
+    template = _rx_env.get_template("prescription.html")
+
+    doctor_name = (
+        f"{doctor.first_name} {doctor.last_name}" if doctor else None
+    )
+    patient_name = f"{patient.first_name} {patient.last_name}"
+
+    signer_name = None
+    signed_date = None
+    if prescription.signed_at is not None:
+        signed_date = _format_date_es(prescription.signed_at)
+        if prescription.signer:
+            signer_name = (
+                f"{prescription.signer.first_name} {prescription.signer.last_name}"
+            )
+
+    items = [
+        {
+            "medication": it.medication,
+            "presentation": it.presentation,
+            "dose": it.dose,
+            "frequency": it.frequency,
+            "duration": it.duration,
+            "quantity": it.quantity,
+            "instructions": it.instructions,
+        }
+        for it in prescription.items
+    ]
+
+    html_str = template.render(
+        clinic=clinic,
+        patient_name=patient_name,
+        patient_age=_calculate_age(patient.birth_date),
+        patient_document=_safe_decrypt(patient.dni),
+        doctor_name=doctor_name,
+        report_date=_format_date_es(prescription.created_at),
+        diagnosis=prescription.diagnosis,
+        cie10_code=prescription.cie10_code,
+        notes=prescription.notes,
+        serial_number=prescription.serial_number,
+        items=items,
+        is_signed=prescription.signed_at is not None,
+        signed_date=signed_date,
+        signer_name=signer_name,
+    )
+
+    css_path = _RX_TEMPLATES_DIR / "styles.css"
+    stylesheets = [CSS(filename=str(css_path))] if css_path.exists() else []
+
+    return HTML(string=html_str, base_url=str(_RX_TEMPLATES_DIR)).write_pdf(
         stylesheets=stylesheets
     )
