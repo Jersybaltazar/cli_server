@@ -84,7 +84,8 @@ async def create_order(
     db.add(order)
     await db.commit()
     await db.refresh(order)
-    return order
+    # Recargar con eager loading para evitar MissingGreenlet en serialización
+    return await get_order(db, clinic_id, order.id)
 
 async def get_order(db: AsyncSession, clinic_id: UUID, order_id: UUID) -> LabOrder:
     """Obtiene una orden por ID con su resultado cargado."""
@@ -195,8 +196,8 @@ async def update_order(
         setattr(order, key, value)
 
     await db.commit()
-    await db.refresh(order)
-    return order
+    # Recargar con eager loading para evitar MissingGreenlet en serialización
+    return await get_order(db, clinic_id, order_id)
 
 async def register_result(
     db: AsyncSession,
