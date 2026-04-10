@@ -39,6 +39,7 @@ from app.models.imaging_template import ImagingTemplate
 from app.models.prescription import Prescription, PrescriptionItem, PrescriptionTemplate
 from app.models.prescription_sequence import PrescriptionSequence
 from app.models.medication_catalog import MedicationCatalog
+from app.models.drug_interaction import DrugInteraction
 
 __all__ = [
     "Organization",
@@ -96,4 +97,5 @@ __all__ = [
     "PrescriptionTemplate",
     "PrescriptionSequence",
     "MedicationCatalog",
+    "DrugInteraction",
 ]

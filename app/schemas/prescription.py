@@ -2,7 +2,7 @@
 Schemas Pydantic para Prescription / PrescriptionItem.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -43,6 +43,11 @@ class PrescriptionCreate(BaseModel):
     items: list[PrescriptionItemCreate] = Field(default_factory=list)
 
 
+class PrescriptionSign(BaseModel):
+    """Payload opcional al firmar — solo para registrar interacciones aceptadas."""
+    acknowledged_interactions: list[dict] | None = None
+
+
 class PrescriptionUpdate(BaseModel):
     diagnosis: str | None = Field(None, max_length=2000)
     cie10_code: str | None = Field(None, max_length=10)
@@ -60,6 +65,9 @@ class PrescriptionResponse(BaseModel):
     cie10_code: str | None = None
     notes: str | None = None
     serial_number: str | None = None
+    kind: str = "common"
+    valid_until: date | None = None
+    verification_token: str | None = None
     items: list[PrescriptionItemResponse]
     created_at: datetime
     updated_at: datetime
@@ -72,7 +80,10 @@ class PrescriptionResponse(BaseModel):
     patient_name: str | None = None
     patient_age: int | None = None
     patient_document: str | None = None
+    patient_address: str | None = None
     doctor_name: str | None = None
+    doctor_cmp: str | None = None
+    doctor_authorization_number: str | None = None
     signer_name: str | None = None
 
     model_config = {"from_attributes": True}

@@ -116,5 +116,12 @@
         <div class="sig-role">Médico responsable</div>
         {% endif %}
     </footer>
+
+    {% if qr_data_uri %}
+    <div class="qr-verify">
+        <img src="{{ qr_data_uri }}" alt="QR verificación" class="qr-img">
+        <div class="qr-text">Escanee para verificar autenticidad</div>
+    </div>
+    {% endif %}
 </body>
 </html>

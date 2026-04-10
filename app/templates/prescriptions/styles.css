@@ -242,3 +242,249 @@ body {
     margin: 4px 0;
     text-align: justify;
 }
+
+/* ═══ Receta controlada (triplicado A4 horizontal) ═══ */
+
+body.controlled {
+    font-size: 8pt;
+    line-height: 1.25;
+}
+
+.ctl-sheet {
+    display: flex;
+    flex-direction: row;
+    gap: 6mm;
+    width: 100%;
+    height: 100%;
+}
+
+.rx-copy {
+    flex: 1 1 0;
+    border: 1px dashed #9ca3af;
+    padding: 6mm 5mm;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.copy-tag {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #b91c1c;
+    color: #ffffff;
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+}
+
+.ctl-header {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 2px solid #b91c1c;
+    padding-bottom: 4mm;
+    margin-bottom: 3mm;
+}
+
+.ctl-clinic .clinic-name {
+    font-size: 10pt;
+    color: #111827;
+    margin: 0;
+}
+
+.ctl-clinic .clinic-branch {
+    font-size: 8pt;
+}
+
+.ctl-clinic .clinic-line {
+    font-size: 7pt;
+}
+
+.ctl-serial {
+    text-align: right;
+    color: #b91c1c;
+}
+
+.serial-label {
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.serial-sub {
+    font-size: 6.5pt;
+    color: #7f1d1d;
+    margin-top: 1mm;
+}
+
+.serial-number {
+    font-size: 11pt;
+    font-weight: 700;
+    margin-top: 2mm;
+    color: #111827;
+}
+
+.ctl-patient {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 7.5pt;
+    margin-bottom: 3mm;
+}
+
+.ctl-patient th,
+.ctl-patient td {
+    border: 1px solid #d1d5db;
+    padding: 1.2mm 2mm;
+    text-align: left;
+    vertical-align: top;
+}
+
+.ctl-patient th {
+    background: #fef2f2;
+    font-weight: 700;
+    width: 18mm;
+    color: #7f1d1d;
+}
+
+.ctl-dates {
+    display: flex;
+    justify-content: space-between;
+    font-size: 7.5pt;
+    margin-bottom: 2mm;
+}
+
+.ctl-valid {
+    color: #b91c1c;
+    font-weight: 700;
+}
+
+.ctl-items {
+    flex: 1 1 auto;
+    border-top: 1px solid #d1d5db;
+    padding-top: 2mm;
+}
+
+.rp-label {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #b91c1c;
+    margin-bottom: 1mm;
+}
+
+.ctl-list {
+    list-style: decimal;
+    padding-left: 5mm;
+    margin: 0;
+}
+
+.ctl-list li {
+    margin-bottom: 2mm;
+    page-break-inside: avoid;
+}
+
+.ctl-med {
+    font-size: 8pt;
+}
+
+.ctl-list-tag {
+    display: inline-block;
+    margin-left: 3px;
+    padding: 0 3px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 6.5pt;
+    font-weight: 700;
+    border-radius: 2px;
+}
+
+.ctl-sig {
+    font-size: 7.5pt;
+    color: #374151;
+}
+
+.ctl-instructions {
+    font-size: 7pt;
+    color: #4b5563;
+    font-style: italic;
+}
+
+.ctl-notes {
+    font-size: 7pt;
+    margin-top: 2mm;
+    padding-top: 2mm;
+    border-top: 1px dashed #e5e7eb;
+}
+
+.ctl-signature {
+    display: flex;
+    gap: 4mm;
+    margin-top: 5mm;
+    padding-top: 3mm;
+}
+
+.ctl-signature .sig-doctor,
+.ctl-signature .sig-pharmacy {
+    flex: 1;
+    text-align: center;
+}
+
+.ctl-signature .sig-line {
+    width: 100%;
+    border-top: 1px solid #111827;
+    margin: 4mm auto 1mm;
+}
+
+.ctl-signature .sig-name {
+    font-size: 7.5pt;
+    font-weight: 600;
+}
+
+.ctl-signature .sig-meta {
+    font-size: 6.5pt;
+    color: #6b7280;
+}
+
+.signed-badge {
+    display: inline-block;
+    margin-top: 1mm;
+    padding: 1px 4px;
+    background: #f0fdfa;
+    border: 1px solid #0f766e;
+    color: #0f766e;
+    font-size: 6.5pt;
+    font-weight: 700;
+    border-radius: 2px;
+}
+
+/* ═══ QR de verificación (Fase 2.5) ═══ */
+
+.qr-verify {
+    position: fixed;
+    bottom: 2.2cm;
+    right: 1.8cm;
+    text-align: center;
+}
+
+.qr-img {
+    width: 70px;
+    height: 70px;
+}
+
+.qr-text {
+    font-size: 6pt;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+/* QR en triplicado controlado */
+.sig-qr {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ctl-qr-img {
+    width: 50px;
+    height: 50px;
+}

@@ -4,9 +4,9 @@ Modelo User — Usuarios del sistema con roles RBAC.
 
 import enum
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import String, DateTime, ForeignKey, Enum, func
+from sqlalchemy import Boolean, Date, String, DateTime, ForeignKey, Enum, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -60,6 +60,20 @@ class User(Base):
         comment="Cargo: Médico Ginecólogo, Obstetriz, Recepcionista"
     )
     phone: Mapped[str | None] = mapped_column(String(20))
+
+    # ── Autorización DIGEMID para prescribir controlados (Fase 2.3) ─
+    is_authorized_controlled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false",
+        comment="Médico autorizado a prescribir sustancias controladas"
+    )
+    controlled_authorization_number: Mapped[str | None] = mapped_column(
+        String(60),
+        comment="Número de autorización DIGEMID para controlados"
+    )
+    controlled_authorization_expiry: Mapped[date | None] = mapped_column(
+        Date,
+        comment="Fecha de vencimiento de la autorización DIGEMID"
+    )
 
     # ── MFA ──────────────────────────────────────────
     is_mfa_enabled: Mapped[bool] = mapped_column(default=False)

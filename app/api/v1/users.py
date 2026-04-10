@@ -17,7 +17,12 @@ from app.database import get_db
 from app.models.clinic import Clinic
 from app.models.user import User, UserRole
 from app.models.user_clinic_access import UserClinicAccess
-from app.schemas.user import UserCreate, UserResponse, UserUpdate
+from app.schemas.user import (
+    ControlledAuthorizationUpdate,
+    UserCreate,
+    UserResponse,
+    UserUpdate,
+)
 
 
 async def _get_visible_clinic_ids(user: User, db: AsyncSession) -> list:
@@ -277,6 +282,54 @@ async def toggle_user_active(
         raise ConflictException("No puedes desactivar tu propia cuenta")
 
     target.is_active = data.is_active
+    await db.flush()
+    await db.refresh(target)
+    return UserResponse.model_validate(target)
+
+
+@router.patch(
+    "/{user_id}/controlled-authorization",
+    response_model=UserResponse,
+)
+async def set_controlled_authorization(
+    user_id: UUID,
+    data: ControlledAuthorizationUpdate,
+    user: User = Depends(require_role(
+        UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.CLINIC_ADMIN,
+    )),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Autoriza o revoca a un médico para prescribir sustancias controladas
+    (psicotrópicos y estupefacientes — DS 023-2001-SA).
+
+    Solo administradores de clínica, organización y super-admin pueden
+    modificar este permiso. El cambio queda registrado para auditoría.
+    """
+    clinic_ids = await _get_visible_clinic_ids(user, db)
+    result = await db.execute(
+        select(User).where(
+            User.id == user_id,
+            User.clinic_id.in_(clinic_ids),
+        )
+    )
+    target = result.scalar_one_or_none()
+    if not target:
+        raise NotFoundException("Usuario no encontrado")
+
+    if target.role not in (UserRole.DOCTOR, UserRole.OBSTETRA):
+        raise ConflictException(
+            "Solo médicos y obstetras pueden recibir autorización para controlados"
+        )
+
+    target.is_authorized_controlled = data.is_authorized_controlled
+    if data.is_authorized_controlled:
+        target.controlled_authorization_number = data.controlled_authorization_number
+        target.controlled_authorization_expiry = data.controlled_authorization_expiry
+    else:
+        target.controlled_authorization_number = None
+        target.controlled_authorization_expiry = None
+
     await db.flush()
     await db.refresh(target)
     return UserResponse.model_validate(target)

@@ -1,0 +1,226 @@
+@page {
+    size: A4;
+    margin: 2cm 1.8cm 2.2cm 1.8cm;
+}
+
+body {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 11pt;
+    color: #1f2937;
+    line-height: 1.4;
+}
+
+.letterhead {
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid #1d4ed8;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+}
+
+.letterhead .logo {
+    width: 90px;
+    margin-right: 16px;
+}
+
+.letterhead .logo img {
+    max-width: 90px;
+    max-height: 90px;
+}
+
+.clinic-info {
+    flex: 1;
+}
+
+.clinic-name {
+    margin: 0;
+    font-size: 16pt;
+    color: #1d4ed8;
+    font-weight: 700;
+}
+
+.clinic-branch {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #374151;
+}
+
+.clinic-line {
+    font-size: 9pt;
+    color: #4b5563;
+    margin-top: 2px;
+}
+
+/* ── Title ── */
+
+.report-title {
+    text-align: center;
+    font-size: 14pt;
+    margin: 14px 0 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #1d4ed8;
+}
+
+.lab-code {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 2px 8px;
+    font-size: 10pt;
+    font-weight: 600;
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #93c5fd;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* ── Patient table ── */
+
+.patient-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 18px;
+    font-size: 10pt;
+}
+
+.patient-table th,
+.patient-table td {
+    border: 1px solid #d1d5db;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.patient-table th {
+    background: #f3f4f6;
+    width: 90px;
+    font-weight: 600;
+}
+
+/* ── Body sections ── */
+
+.report-body h3 {
+    font-size: 11pt;
+    color: #1d4ed8;
+    border-bottom: 1px solid #d1d5db;
+    padding-bottom: 3px;
+    margin: 16px 0 8px;
+}
+
+.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+    margin-bottom: 8px;
+}
+
+.detail-table th,
+.detail-table td {
+    padding: 5px 8px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.detail-table th {
+    width: 160px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.indication p,
+.notes p {
+    margin: 4px 0;
+    text-align: justify;
+    font-size: 10pt;
+}
+
+/* ── Findings / structured results ── */
+
+.findings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+}
+
+.findings-table th,
+.findings-table td {
+    border: 1px solid #e5e7eb;
+    padding: 5px 8px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.findings-table th {
+    background: #f9fafb;
+    width: 35%;
+    text-transform: capitalize;
+}
+
+.findings-table pre {
+    margin: 0;
+    font-family: "Courier New", monospace;
+    font-size: 9pt;
+    white-space: pre-wrap;
+}
+
+.routine-values {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+}
+
+.routine-values pre {
+    margin: 0;
+    font-family: "Courier New", monospace;
+    font-size: 9pt;
+    white-space: pre-wrap;
+}
+
+.result-positive {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.result-negative {
+    color: #16a34a;
+    font-weight: 700;
+}
+
+/* ── Conclusion ── */
+
+.conclusion p {
+    margin: 4px 0;
+    text-align: justify;
+    font-size: 10pt;
+}
+
+/* ── Signature ── */
+
+.signature {
+    margin-top: 60px;
+    text-align: center;
+}
+
+.sig-line {
+    width: 220px;
+    border-top: 1px solid #1f2937;
+    margin: 0 auto 4px;
+}
+
+.sig-name {
+    font-weight: 600;
+    font-size: 10pt;
+}
+
+.sig-role {
+    font-size: 9pt;
+    color: #6b7280;
+}
+
+.sig-meta {
+    font-size: 8pt;
+    color: #6b7280;
+    margin-top: 2px;
+}

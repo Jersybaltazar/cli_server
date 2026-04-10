@@ -3,6 +3,8 @@ Utilidades de seguridad: hashing de contraseñas y cifrado de PII (Fernet).
 """
 
 import asyncio
+import hashlib
+import hmac
 from concurrent.futures import ThreadPoolExecutor
 
 from cryptography.fernet import Fernet
@@ -88,3 +90,19 @@ def decrypt_pii(encrypted_value: str) -> str:
     except Exception:
         # Dato almacenado en texto plano (pre-encriptación)
         return encrypted_value
+
+
+# ── Verificación QR — HMAC tokens (Fase 2.5) ──────
+
+def generate_verification_token(prescription_id: str) -> str:
+    """Genera un token HMAC-SHA256 truncado (8 hex chars) para verificación QR."""
+    key = settings.FERNET_KEY.encode()
+    msg = f"rx-verify:{prescription_id}".encode()
+    mac = hmac.new(key, msg, hashlib.sha256).hexdigest()[:8]
+    return mac
+
+
+def verify_verification_token(prescription_id: str, token: str) -> bool:
+    """Verifica un token HMAC de receta (timing-safe)."""
+    expected = generate_verification_token(prescription_id)
+    return hmac.compare_digest(expected, token)

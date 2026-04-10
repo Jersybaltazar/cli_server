@@ -2,6 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.auth import get_current_user
@@ -15,6 +16,7 @@ from app.schemas.lab import (
 )
 from app.services import lab_service
 from app.services import storage_service
+from app.services.pdf_service import render_lab_order_pdf, render_lab_result_pdf
 from app.auth.dependencies import require_role
 
 router = APIRouter()
@@ -81,6 +83,59 @@ async def register_lab_result(
 ):
     """Registra el resultado detallado de una orden (Admin o Doctor)."""
     return await lab_service.register_result(db, user.clinic_id, order_id, user.id, data)
+
+@router.get(
+    "/orders/{order_id}/pdf",
+    responses={200: {"content": {"application/pdf": {}}}},
+)
+async def download_lab_order_pdf(
+    order_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Descarga la orden de laboratorio en formato PDF."""
+    order = await lab_service.get_order(db, user.clinic_id, order_id)
+    pdf_bytes = render_lab_order_pdf(
+        order=order,
+        patient=order.patient,
+        doctor=order.doctor,
+        clinic=order.clinic,
+    )
+    filename = f"orden-lab-{order.lab_code or order.id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
+
+
+@router.get(
+    "/orders/{order_id}/result/pdf",
+    responses={200: {"content": {"application/pdf": {}}}},
+)
+async def download_lab_result_pdf(
+    order_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Descarga el resultado de laboratorio en formato PDF."""
+    order = await lab_service.get_order(db, user.clinic_id, order_id)
+    if not order.result:
+        raise HTTPException(status_code=404, detail="Esta orden aún no tiene resultado registrado")
+    pdf_bytes = render_lab_result_pdf(
+        order=order,
+        result=order.result,
+        patient=order.patient,
+        doctor=order.doctor,
+        clinic=order.clinic,
+    )
+    filename = f"resultado-lab-{order.lab_code or order.id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
+
 
 @router.post("/files/presigned-upload", response_model=PresignedUploadResponse)
 async def get_presigned_upload_url(

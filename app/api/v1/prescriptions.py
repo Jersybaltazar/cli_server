@@ -6,15 +6,18 @@ from datetime import date
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request, Response, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import require_role
 from app.database import get_db
+from app.models.medication_catalog import MedicationCatalog
 from app.models.user import User, UserRole
 from app.schemas.prescription import (
     PrescriptionCreate,
     PrescriptionListResponse,
     PrescriptionResponse,
+    PrescriptionSign,
     PrescriptionTemplateCreate,
     PrescriptionTemplateListResponse,
     PrescriptionTemplateResponse,
@@ -151,11 +154,18 @@ async def update_prescription(
 async def sign_prescription(
     rx_id: UUID,
     request: Request,
+    body: PrescriptionSign | None = None,
     user: User = Depends(require_role(*_EDITOR_ROLES)),
     db: AsyncSession = Depends(get_db),
 ):
     return await prescription_service.sign_prescription(
-        db, user=user, rx_id=rx_id, ip_address=_get_client_ip(request)
+        db,
+        user=user,
+        rx_id=rx_id,
+        ip_address=_get_client_ip(request),
+        acknowledged_interactions=(
+            body.acknowledged_interactions if body else None
+        ),
     )
 
 
@@ -171,11 +181,27 @@ async def download_prescription_pdf(
     rx = await prescription_service.get_prescription_raw(
         db, clinic_id=user.clinic_id, rx_id=rx_id
     )
+
+    # Cargar listas controladas (IIA/IIIA/IIIB) para cada item vinculado
+    # al catálogo, si los hay. Se usa sólo en recetas controladas.
+    controlled_info: dict[str, str] = {}
+    med_ids = [i.medication_id for i in rx.items if i.medication_id is not None]
+    if med_ids:
+        rows = await db.execute(
+            select(MedicationCatalog.id, MedicationCatalog.controlled_list).where(
+                MedicationCatalog.id.in_(med_ids)
+            )
+        )
+        for mid, clist in rows.all():
+            if clist:
+                controlled_info[str(mid)] = clist
+
     pdf_bytes = render_prescription_pdf(
         prescription=rx,
         patient=rx.patient,
         doctor=rx.doctor,
         clinic=rx.clinic,
+        controlled_info=controlled_info,
     )
     filename = f"receta-{rx.id}.pdf"
     return Response(

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Receta Especial — {{ patient_name }}</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm 8mm;
+        }
+    </style>
+</head>
+<body class="controlled">
+    {% macro rx_copy(copy_label) %}
+    <section class="rx-copy">
+        <div class="copy-tag">{{ copy_label }}</div>
+
+        <header class="ctl-header">
+            <div class="ctl-clinic">
+                <div class="clinic-name">{{ clinic.name }}</div>
+                {% if clinic.branch_name %}
+                <div class="clinic-branch">{{ clinic.branch_name }}</div>
+                {% endif %}
+                {% if clinic.address %}
+                <div class="clinic-line">{{ clinic.address }}</div>
+                {% endif %}
+                <div class="clinic-line">
+                    {% if clinic.phone %}Tel: {{ clinic.phone }}{% endif %}
+                </div>
+                <div class="clinic-line">RUC: {{ clinic.ruc }}</div>
+            </div>
+            <div class="ctl-serial">
+                <div class="serial-label">RECETA ESPECIAL</div>
+                <div class="serial-sub">DS 023-2001-SA</div>
+                {% if serial_number %}
+                <div class="serial-number">N° {{ serial_number }}</div>
+                {% endif %}
+            </div>
+        </header>
+
+        <table class="ctl-patient">
+            <tr>
+                <th>Paciente</th>
+                <td>{{ patient_name }}</td>
+            </tr>
+            <tr>
+                <th>DNI</th>
+                <td>{{ patient_document or "—" }}</td>
+                <th>Edad</th>
+                <td>{{ patient_age if patient_age is not none else "—" }} años</td>
+            </tr>
+            <tr>
+                <th>Dirección</th>
+                <td colspan="3">{{ patient_address or "—" }}</td>
+            </tr>
+            {% if diagnosis or cie10_code %}
+            <tr>
+                <th>Diagnóstico</th>
+                <td colspan="3">
+                    {{ diagnosis or "—" }}
+                    {% if cie10_code %} <span class="cie">({{ cie10_code }})</span>{% endif %}
+                </td>
+            </tr>
+            {% endif %}
+        </table>
+
+        <div class="ctl-dates">
+            <div><strong>Fecha emisión:</strong> {{ report_date }}</div>
+            {% if valid_until %}
+            <div class="ctl-valid"><strong>Válida hasta:</strong> {{ valid_until }}</div>
+            {% endif %}
+        </div>
+
+        <section class="ctl-items">
+            <div class="rp-label">Rp/</div>
+            {% if items %}
+            <ol class="ctl-list">
+                {% for it in items %}
+                <li>
+                    <div class="ctl-med">
+                        <strong>{{ it.medication }}</strong>
+                        {% if it.presentation %} — {{ it.presentation }}{% endif %}
+                        {% if it.controlled_list %}
+                        <span class="ctl-list-tag">Lista {{ it.controlled_list }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="ctl-sig">
+                        {% set parts = [] %}
+                        {% if it.dose %}{% set _ = parts.append(it.dose) %}{% endif %}
+                        {% if it.frequency %}{% set _ = parts.append(it.frequency) %}{% endif %}
+                        {% if it.duration %}{% set _ = parts.append(it.duration) %}{% endif %}
+                        {% if it.quantity %}{% set _ = parts.append('Cant.: ' ~ it.quantity) %}{% endif %}
+                        {{ parts | join(' · ') }}
+                    </div>
+                    {% if it.instructions %}
+                    <div class="ctl-instructions">{{ it.instructions }}</div>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ol>
+            {% else %}
+            <p class="empty">Sin medicamentos registrados.</p>
+            {% endif %}
+        </section>
+
+        {% if notes %}
+        <section class="ctl-notes">
+            <strong>Indicaciones:</strong> {{ notes }}
+        </section>
+        {% endif %}
+
+        <footer class="ctl-signature">
+            <div class="sig-doctor">
+                <div class="sig-line"></div>
+                <div class="sig-name">{{ doctor_name or "" }}</div>
+                <div class="sig-meta">
+                    {% if doctor_cmp %}CMP {{ doctor_cmp }}{% endif %}
+                    {% if doctor_authorization_number %}
+                    · Autoriz. DIGEMID {{ doctor_authorization_number }}
+                    {% endif %}
+                </div>
+                {% if is_signed %}
+                <div class="signed-badge">✓ Firmado digitalmente · {{ signed_date }}</div>
+                {% endif %}
+            </div>
+            {% if qr_data_uri %}
+            <div class="sig-qr">
+                <img src="{{ qr_data_uri }}" alt="QR" class="ctl-qr-img">
+            </div>
+            {% endif %}
+            <div class="sig-pharmacy">
+                <div class="sig-line"></div>
+                <div class="sig-name">Farmacéutico dispensador</div>
+                <div class="sig-meta">Fecha de despacho: ____/____/______</div>
+            </div>
+        </footer>
+    </section>
+    {% endmacro %}
+
+    <div class="ctl-sheet">
+        {{ rx_copy("PACIENTE") }}
+        {{ rx_copy("FARMACIA") }}
+        {{ rx_copy("ARCHIVO") }}
+    </div>
+</body>
+</html>

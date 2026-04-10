@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultado de Laboratorio — {{ patient_name }}</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="letterhead">
+        {% if clinic.logo_url %}
+        <div class="logo">
+            <img src="{{ clinic.logo_url }}" alt="Logo">
+        </div>
+        {% endif %}
+        <div class="clinic-info">
+            <h1 class="clinic-name">{{ clinic.name }}</h1>
+            {% if clinic.branch_name %}
+            <div class="clinic-branch">{{ clinic.branch_name }}</div>
+            {% endif %}
+            {% if clinic.address %}
+            <div class="clinic-line">{{ clinic.address }}</div>
+            {% endif %}
+            <div class="clinic-line">
+                {% if clinic.phone %}Tel: {{ clinic.phone }}{% endif %}
+                {% if clinic.email %} &middot; {{ clinic.email }}{% endif %}
+            </div>
+            <div class="clinic-line">RUC: {{ clinic.ruc }}</div>
+        </div>
+    </header>
+
+    <h2 class="report-title">
+        INFORME DE RESULTADOS DE LABORATORIO
+        {% if lab_code %}
+        <span class="lab-code">{{ lab_code }}</span>
+        {% endif %}
+    </h2>
+
+    <section class="patient-block">
+        <table class="patient-table">
+            <tr>
+                <th>Paciente:</th>
+                <td>{{ patient_name }}</td>
+                <th>Edad:</th>
+                <td>{{ patient_age if patient_age is not none else "&mdash;" }} a&ntilde;os</td>
+            </tr>
+            <tr>
+                <th>DNI:</th>
+                <td>{{ patient_document or "&mdash;" }}</td>
+                <th>Fecha orden:</th>
+                <td>{{ order_date }}</td>
+            </tr>
+            <tr>
+                <th>M&eacute;dico:</th>
+                <td>{{ doctor_name or "&mdash;" }}</td>
+                <th>Fecha resultado:</th>
+                <td>{{ result_date }}</td>
+            </tr>
+        </table>
+    </section>
+
+    <main class="report-body">
+        <section class="study-info">
+            <h3>Estudio realizado</h3>
+            <table class="detail-table">
+                <tr>
+                    <th>Tipo:</th>
+                    <td>{{ study_type_label }}</td>
+                </tr>
+                <tr>
+                    <th>Nombre:</th>
+                    <td>{{ study_name }}</td>
+                </tr>
+                {% if external_lab_name %}
+                <tr>
+                    <th>Laboratorio:</th>
+                    <td>{{ external_lab_name }}{% if external_lab_code %} (C&oacute;d: {{ external_lab_code }}){% endif %}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </section>
+
+        {% if clinical_indication %}
+        <section class="indication">
+            <h3>Indicaci&oacute;n cl&iacute;nica</h3>
+            <p>{{ clinical_indication }}</p>
+        </section>
+        {% endif %}
+
+        {# ── Structured detail by study type ── #}
+        {% if result_detail and result_detail | length > 0 %}
+        <section class="structured-results">
+            <h3>Resultados detallados</h3>
+
+            {% if study_type == "cytology" %}
+                <table class="findings-table">
+                    {% if result_detail.adequacy %}
+                    <tr><th>Calidad de muestra</th><td>{{ result_detail.adequacy }}</td></tr>
+                    {% endif %}
+                    {% if result_detail.classification %}
+                    <tr><th>Clasificaci&oacute;n Bethesda</th><td>{{ result_detail.classification }}</td></tr>
+                    {% endif %}
+                    {% for key, val in result_detail.items() %}
+                        {% if key not in ("adequacy", "classification") %}
+                    <tr><th>{{ key | capitalize }}</th><td>{{ val }}</td></tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
+
+            {% elif study_type == "pathology" %}
+                <table class="findings-table">
+                    {% if result_detail.macroscopic %}
+                    <tr><th>Hallazgos macrosc&oacute;picos</th><td><pre>{{ result_detail.macroscopic }}</pre></td></tr>
+                    {% endif %}
+                    {% if result_detail.microscopic %}
+                    <tr><th>Hallazgos microsc&oacute;picos</th><td><pre>{{ result_detail.microscopic }}</pre></td></tr>
+                    {% endif %}
+                    {% for key, val in result_detail.items() %}
+                        {% if key not in ("macroscopic", "microscopic") %}
+                    <tr><th>{{ key | capitalize }}</th><td>{{ val }}</td></tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
+
+            {% elif study_type == "hpv_test" %}
+                <table class="findings-table">
+                    {% if result_detail.result %}
+                    <tr><th>Resultado</th><td class="{{ 'result-positive' if result_detail.result == 'positive' else 'result-negative' }}">{{ result_detail.result | upper }}</td></tr>
+                    {% endif %}
+                    {% if result_detail.genotypes %}
+                    <tr><th>Genotipos detectados</th><td>{{ result_detail.genotypes | join(", ") }}</td></tr>
+                    {% endif %}
+                    {% for key, val in result_detail.items() %}
+                        {% if key not in ("result", "genotypes") %}
+                    <tr><th>{{ key | capitalize }}</th><td>{{ val }}</td></tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
+
+            {% elif study_type == "routine" %}
+                {% if result_detail.values %}
+                <div class="routine-values">
+                    <pre>{{ result_detail.values }}</pre>
+                </div>
+                {% endif %}
+                <table class="findings-table">
+                    {% for key, val in result_detail.items() %}
+                        {% if key != "values" %}
+                    <tr><th>{{ key | capitalize }}</th><td>{{ val }}</td></tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
+
+            {% else %}
+                <table class="findings-table">
+                    {% for key, val in result_detail.items() %}
+                    <tr><th>{{ key | capitalize }}</th><td>{{ val }}</td></tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        {# ── Summary / diagnosis ── #}
+        <section class="conclusion">
+            <h3>Conclusi&oacute;n / Diagn&oacute;stico</h3>
+            <p>{{ result_summary }}</p>
+        </section>
+    </main>
+
+    <footer class="signature">
+        <div class="sig-line"></div>
+        <div class="sig-name">{{ doctor_name or "" }}</div>
+        <div class="sig-role">M&eacute;dico solicitante</div>
+        {% if recorded_date %}
+        <div class="sig-meta">Resultado registrado el {{ recorded_date }}</div>
+        {% endif %}
+    </footer>
+</body>
+</html>

@@ -95,6 +95,7 @@ async def get_order(db: AsyncSession, clinic_id: UUID, order_id: UUID) -> LabOrd
             selectinload(LabOrder.result),
             selectinload(LabOrder.patient),
             selectinload(LabOrder.doctor),
+            selectinload(LabOrder.clinic),
         )
     )
     order = result.scalar_one_or_none()

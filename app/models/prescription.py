@@ -13,6 +13,8 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    Boolean,
+    Date,
     DateTime,
     ForeignKey,
     Index,
@@ -21,6 +23,7 @@ from sqlalchemy import (
     Text,
     func,
 )
+from datetime import date as date_type
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -61,7 +64,29 @@ class Prescription(Base):
     # ── Numeración correlativa (Fase 2.1) ───────────
     serial_number: Mapped[str | None] = mapped_column(
         String(32),
-        comment="Serial RX-AAAA-NNNNNN, asignado al firmar"
+        comment="Serial RX-AAAA-NNNNNN (común) o RXC-AAAA-NNNNNN (controlada)"
+    )
+
+    # ── Tipo de receta (Fase 2.3) ───────────────────
+    kind: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="common", server_default="common",
+        comment="Tipo de receta: common | controlled (DS 023-2001-SA)"
+    )
+    valid_until: Mapped[date_type | None] = mapped_column(
+        Date,
+        comment="Vigencia máxima (3 días para controladas, derivado al firmar)"
+    )
+
+    # ── DDI override — interacciones aceptadas (Fase 2.4) ──
+    acknowledged_interactions: Mapped[list | None] = mapped_column(
+        JSONB,
+        comment="Interacciones major/contraindicated aceptadas al firmar (auditoría)"
+    )
+
+    # ── Verificación QR (Fase 2.5) ─────────────────────
+    verification_token: Mapped[str | None] = mapped_column(
+        String(16),
+        comment="HMAC-SHA256 truncado para URL pública de verificación QR"
     )
 
     # ── Firma digital ───────────────────────────────

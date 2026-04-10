@@ -5,7 +5,7 @@ Patrón: análogo a imaging_service. Receta = encabezado + items.
 Inmutabilidad post-firma; opcionalmente heredada del MedicalRecord padre.
 """
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from uuid import UUID
 
 from dateutil.relativedelta import relativedelta
@@ -14,8 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.core.exceptions import ForbiddenException, NotFoundException
-from app.core.security import decrypt_pii
+from app.core.security import decrypt_pii, generate_verification_token
+from app.models.clinic import Clinic
 from app.models.medical_record import MedicalRecord
+from app.models.medication_catalog import MedicationCatalog
 from app.models.patient import Patient
 from app.models.prescription import (
     Prescription,
@@ -67,6 +69,10 @@ def _to_response(
     doctor_name = (
         f"{rx.doctor.first_name} {rx.doctor.last_name}" if rx.doctor else None
     )
+    doctor_cmp = rx.doctor.cmp_number if rx.doctor else None
+    doctor_authorization_number = (
+        rx.doctor.controlled_authorization_number if rx.doctor else None
+    )
     signer_name = (
         f"{rx.signer.first_name} {rx.signer.last_name}" if rx.signer else None
     )
@@ -75,9 +81,11 @@ def _to_response(
     patient_name = None
     patient_age = None
     patient_document = None
+    patient_address = None
     if target:
         patient_name = f"{target.first_name} {target.last_name}"
         patient_age = _calculate_age(target.birth_date)
+        patient_address = target.address
         try:
             patient_document = decrypt_pii(target.dni)
         except Exception:
@@ -93,6 +101,9 @@ def _to_response(
         cie10_code=rx.cie10_code,
         notes=rx.notes,
         serial_number=rx.serial_number,
+        kind=rx.kind or "common",
+        valid_until=rx.valid_until,
+        verification_token=rx.verification_token,
         items=[_item_to_response(i) for i in rx.items],
         created_at=rx.created_at,
         updated_at=rx.updated_at,
@@ -102,20 +113,66 @@ def _to_response(
         patient_name=patient_name,
         patient_age=patient_age,
         patient_document=patient_document,
+        patient_address=patient_address,
         doctor_name=doctor_name,
+        doctor_cmp=doctor_cmp,
+        doctor_authorization_number=doctor_authorization_number,
         signer_name=signer_name,
     )
+
+
+# ── Detección de tipo de receta (Fase 2.3) ──────────
+
+async def _detect_kind(
+    db: AsyncSession, items: list[PrescriptionItem]
+) -> str:
+    """
+    Devuelve 'controlled' si algún item está vinculado a un medicamento
+    del catálogo marcado como controlado. Los ítems de texto libre
+    (sin medication_id) no pueden ser detectados automáticamente.
+    """
+    ids = [i.medication_id for i in items if i.medication_id is not None]
+    if not ids:
+        return "common"
+    result = await db.execute(
+        select(MedicationCatalog.id).where(
+            MedicationCatalog.id.in_(ids),
+            MedicationCatalog.is_controlled.is_(True),
+        )
+    )
+    if result.first() is not None:
+        return "controlled"
+    return "common"
 
 
 async def _get_patient_or_404(
     db: AsyncSession, clinic_id: UUID, patient_id: UUID
 ) -> Patient:
-    result = await db.execute(
-        select(Patient).where(
+    """
+    Obtiene un paciente visible desde la clínica actual.
+
+    Soporta el modelo cross-sede: si la clínica pertenece a una
+    organización, se permite cualquier paciente de la misma org
+    (su `clinic_id` puede apuntar a la sede donde fue creado
+    originalmente, mientras esté enlazado vía patient_clinic_links).
+    """
+    org_result = await db.execute(
+        select(Clinic.organization_id).where(Clinic.id == clinic_id)
+    )
+    org_id = org_result.scalar_one_or_none()
+
+    if org_id:
+        stmt = select(Patient).where(
+            Patient.id == patient_id,
+            Patient.organization_id == org_id,
+        )
+    else:
+        stmt = select(Patient).where(
             Patient.id == patient_id,
             Patient.clinic_id == clinic_id,
         )
-    )
+
+    result = await db.execute(stmt)
     p = result.scalar_one_or_none()
     if not p:
         raise NotFoundException("Paciente")
@@ -200,6 +257,10 @@ async def create_prescription(
                 instructions=it.instructions,
             )
         )
+
+    # Fase 2.3 — auto-detección de receta controlada
+    rx.kind = await _detect_kind(db, rx.items)
+
     db.add(rx)
     await db.flush()
 
@@ -298,6 +359,7 @@ async def update_prescription(
             rx.items.append(
                 PrescriptionItem(
                     position=idx,
+                    medication_id=it.medication_id,
                     medication=it.medication,
                     presentation=it.presentation,
                     dose=it.dose,
@@ -307,6 +369,8 @@ async def update_prescription(
                     instructions=it.instructions,
                 )
             )
+        # Fase 2.3 — re-detectar tipo si cambiaron los items
+        rx.kind = await _detect_kind(db, rx.items)
 
     await db.flush()
 
@@ -331,6 +395,7 @@ async def sign_prescription(
     user: User,
     rx_id: UUID,
     ip_address: str | None = None,
+    acknowledged_interactions: list[dict] | None = None,
 ) -> PrescriptionResponse:
     clinic_id = user.clinic_id
     rx = await _get_or_404(db, clinic_id, rx_id)
@@ -340,10 +405,46 @@ async def sign_prescription(
     if rx.doctor_id != user.id and user.role != UserRole.SUPER_ADMIN:
         raise ForbiddenException("Solo el médico que creó la receta puede firmarla")
 
+    # ── Validaciones específicas para recetas controladas (Fase 2.3) ──
+    if rx.kind == "controlled":
+        # Médico autorizado por DIGEMID
+        if not user.is_authorized_controlled:
+            raise ForbiddenException(
+                "No está autorizado a prescribir sustancias controladas. "
+                "Contacte al administrador de su clínica."
+            )
+        expiry = user.controlled_authorization_expiry
+        if expiry is not None and expiry < date.today():
+            raise ForbiddenException(
+                "Su autorización DIGEMID para controlados está vencida. "
+                "Contacte al administrador de su clínica."
+            )
+        # Dirección del paciente es obligatoria (DS 014-2011-SA)
+        if not (rx.patient and rx.patient.address and rx.patient.address.strip()):
+            raise ForbiddenException(
+                "Falta dirección del paciente. Edite la ficha del paciente "
+                "antes de firmar una receta controlada."
+            )
+
     if rx.serial_number is None:
-        rx.serial_number = await next_serial(db, clinic_id=clinic_id, kind="common")
+        rx.serial_number = await next_serial(
+            db, clinic_id=clinic_id, kind=rx.kind or "common"
+        )
     rx.signed_at = datetime.now(timezone.utc)
     rx.signed_by = user.id
+
+    # Vigencia: 3 días para controladas; las comunes no tienen vigencia oficial
+    if rx.kind == "controlled":
+        rx.valid_until = rx.signed_at.date() + timedelta(days=3)
+
+    # Fase 2.4 — registrar interacciones aceptadas (auditoría DDI)
+    if acknowledged_interactions:
+        rx.acknowledged_interactions = acknowledged_interactions
+
+    # Fase 2.5 — generar token de verificación QR
+    if rx.verification_token is None:
+        rx.verification_token = generate_verification_token(str(rx.id))
+
     await db.flush()
 
     await log_action(

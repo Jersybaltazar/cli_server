@@ -2,7 +2,7 @@
 Schemas para User.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
@@ -20,6 +20,14 @@ class UserBase(BaseModel):
     specialty_type: str | None = Field(None, max_length=100)
     position: str | None = Field(None, max_length=100)
     phone: str | None = Field(None, max_length=20)
+
+
+class ControlledAuthorizationUpdate(BaseModel):
+    """Payload para autorizar o revocar a un médico para prescribir
+    sustancias controladas (DS 023-2001-SA)."""
+    is_authorized_controlled: bool
+    controlled_authorization_number: str | None = Field(None, max_length=60)
+    controlled_authorization_expiry: date | None = None
 
 
 class UserCreate(UserBase):
@@ -63,6 +71,10 @@ class UserResponse(BaseModel):
     is_mfa_enabled: bool
     is_active: bool
     last_login: datetime | None = None
+    # Autorización DIGEMID para controlados (Fase 2.3)
+    is_authorized_controlled: bool = False
+    controlled_authorization_number: str | None = None
+    controlled_authorization_expiry: date | None = None
     created_at: datetime
     updated_at: datetime
     # Datos de sede (enriquecidos en el endpoint)

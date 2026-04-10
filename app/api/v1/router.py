@@ -40,6 +40,8 @@ from app.api.v1.imaging import router as imaging_router
 from app.api.v1.imaging_templates import router as imaging_templates_router
 from app.api.v1.prescriptions import router as prescriptions_router
 from app.api.v1.medications import router as medications_router
+from app.api.v1.drug_interactions import router as drug_interactions_router
+from app.api.v1.public_prescription import router as public_prescription_router
 
 api_v1_router = APIRouter()
 
@@ -251,4 +253,16 @@ api_v1_router.include_router(
     medications_router,
     prefix="/medications",
     tags=["Catálogo de Medicamentos"],
+)
+
+api_v1_router.include_router(
+    drug_interactions_router,
+    prefix="/drug-interactions",
+    tags=["Interacciones Medicamentosas (DDI)"],
+)
+
+api_v1_router.include_router(
+    public_prescription_router,
+    prefix="/public",
+    tags=["Verificación Pública de Recetas"],
 )
